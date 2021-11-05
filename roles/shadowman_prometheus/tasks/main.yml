@@ -1,0 +1,5 @@
+---
+- name: Start Node Exporter
+  ansible.builtin.service:
+    name: "{{ nodeexporter_service_name }}"
+    state: started

@@ -1,0 +1,10 @@
+---
+- name: Increase VM sockets
+  hosts: "{{ vm_name | default('localhost') }}"
+  gather_facts: false
+
+  vars:
+    shadowman_cores: "increase"
+    
+  roles:
+    - shadowman_cores

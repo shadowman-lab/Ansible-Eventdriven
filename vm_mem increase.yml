@@ -1,0 +1,10 @@
+---
+- name: Increase VM Memory
+  hosts: "{{ vm_name | default('localhost') }}"
+  gather_facts: false
+
+  vars:
+    shadowman_mem: "increase"
+    
+  roles:
+    - shadowman_mem

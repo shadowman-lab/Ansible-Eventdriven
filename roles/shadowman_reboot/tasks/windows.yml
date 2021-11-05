@@ -1,3 +1,0 @@
----
-- name: Reboot Windows Server
-  ansible.windows.win_reboot:

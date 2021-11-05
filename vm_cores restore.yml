@@ -1,0 +1,10 @@
+---
+- name: Restore VM sockets
+  hosts: "{{ vm_name | default('localhost') }}"
+  gather_facts: false
+
+  vars:
+    shadowman_cores: "restore"
+    
+  roles:
+    - shadowman_cores

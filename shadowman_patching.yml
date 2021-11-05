@@ -1,6 +1,0 @@
----
-- name: Patch Servers
-  hosts: all
-  
-  roles:
-    - shadowman_patching

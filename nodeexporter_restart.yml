@@ -1,0 +1,6 @@
+---
+- name: Restart Prometheus Node Exporter
+  hosts: "{{ vm_name | default('localhost') }}"
+  
+  roles:
+    - shadowman_prometheus

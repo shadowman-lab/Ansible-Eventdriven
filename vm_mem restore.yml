@@ -1,0 +1,10 @@
+---
+- name: Restore VM Memory
+  hosts: "{{ vm_name | default('localhost') }}"
+  gather_facts: false
+
+  vars:
+    shadowman_mem: "restore"
+    
+  roles:
+    - shadowman_mem

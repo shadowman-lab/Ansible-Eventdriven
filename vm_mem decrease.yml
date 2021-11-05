@@ -1,0 +1,10 @@
+---
+- name: Decrease VM Memory
+  hosts: "{{ vm_name | default('localhost') }}"
+  gather_facts: false
+
+  vars:
+    shadowman_mem: "decrease"
+    
+  roles:
+    - shadowman_mem
