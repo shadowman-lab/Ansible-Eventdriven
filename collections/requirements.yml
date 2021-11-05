@@ -1,24 +1,7 @@
 collections:
-  - name: redhat.insights
-
-  - name: chocolatey.chocolatey
-
-  - name: community.windows
-    source: https://towerpah.shadowman.dev/api/galaxy/content/community/
-
-  - name: community.general
-    source: https://towerpah.shadowman.dev/api/galaxy/content/community/
-
-  - name: ansible.windows
-
-  - name: ansible.posix
-
-  - name: splunk.es
-
-  - name: shadowman.reports
-    source: https://towerpah.shadowman.dev/api/galaxy/content/published/
-
   - name: redhat.rhv
 
+  - name: vmware.vmware_rest
+    version: 1.0.1
 
   
