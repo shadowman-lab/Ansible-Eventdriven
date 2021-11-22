@@ -8,6 +8,6 @@
   - name: Show all the hosts in the current play
     ansible.builtin.debug:
       msg: "{{ item }}"
-    loop: "{{ ansible_play_batch }}"
+    loop: "{{ ansible_play_batch }}.os"
     delegate_to: localhost
     run_once: true
