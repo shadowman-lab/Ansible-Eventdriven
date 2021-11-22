@@ -10,7 +10,7 @@
       msg: "{{ item }}"
     loop: "{{ new }}"
     vars:
-      new: '{{ hostvars|dictsort(false, "host")|selectattr("1.host", "defined")|map(attribute="0")|list }}'
+      new: "{{ hostvars|dictsort(false, 'host')|list }}"
     delegate_to: localhost
     run_once: true
       
