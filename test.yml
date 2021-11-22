@@ -10,7 +10,7 @@
       msg: "{{ item }}"
     loop: "{{ new }}"
     vars:
-      new: '{{ hostvars|dictsort|selectattr("1.ip_addr", "defined")|map(attribute="1.ip_addr")|list }}'
+      new: '{{ hostvars|dictsort|selectattr("1.creation_time_timestamp", "defined")|map(attribute="creation_time_timestamp")|list }}'
     delegate_to: localhost
     run_once: true
       
