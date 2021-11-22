@@ -7,7 +7,7 @@
 
   - name: Show all the hosts in the current play
     ansible.builtin.debug:
-      msg: "{{ item }} and {{ ansible_loop.index0 }}"
+      msg: "{{ item }}"
     loop: "{{ new }}"
     vars:
       new: '{{ hostvars|dictsort|selectattr("1.ansible_host", "defined")|map(attribute="1.ansible_host")|list }}'
