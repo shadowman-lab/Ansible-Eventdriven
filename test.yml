@@ -9,3 +9,5 @@
     ansible.builtin.debug:
       msg: "{{ item }}"
     loop: "{{ ansible_play_batch }}"
+    delegate_to: localhost
+    run_once: true
