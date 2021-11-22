@@ -1,4 +1,0 @@
----
-ansible.builtin.debug:
-  msg: "{{ item }} and {{ ansible_loop.index0 }}"
-when: ansible_loop.index0 == order

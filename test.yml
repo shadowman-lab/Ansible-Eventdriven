@@ -6,7 +6,7 @@
   tasks:
 
   - name: Show all the hosts in the current play
-    ansible.builtin.include_tasks:
+    ansible.builtin.debug:
       msg: "{{ item }} and {{ ansible_loop.index0 }}"
     loop: "{{ ansible_play_batch | sortbysubkey('template') }}"
     loop_control:
