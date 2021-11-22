@@ -1,0 +1,11 @@
+---
+- name: Test of play
+  hosts: all
+  gather_facts: false
+
+  tasks:
+
+  - name: Show all the hosts in the current play
+    ansible.builtin.debug:
+      msg: "{{ item }}"
+    loop: "{{ ansible_play_batch }}"
