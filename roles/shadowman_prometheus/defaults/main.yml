@@ -1,2 +1,3 @@
 ---
 nodeexporter_service_name: nodeexporter_{{ inventory_hostname_short }}
+prometheus_state: started

@@ -1,5 +1,5 @@
 ---
-- name: Start Node Exporter
+- name: Change Node Exporter State
   ansible.builtin.service:
     name: "{{ nodeexporter_service_name }}"
-    state: started
+    state: "{{ prometheus_state }}"

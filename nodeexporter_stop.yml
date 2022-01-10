@@ -1,10 +1,10 @@
 ---
-- name: Restart Prometheus Node Exporter
+- name: Stop Prometheus Node Exporter
   hosts: "{{ vm_name | default('localhost') }}"
   gather_facts: false
 
   vars:
-    prometheus_state: started
+    prometheus_state: stopped
   
   roles:
     - shadowman_prometheus
