@@ -2,7 +2,7 @@
 - name: Get VM info
   vmware.vmware_rest.vcenter_vm_info:
     filter_names:
-    - "{{ inventory_hostname }}"
+      - "{{ inventory_hostname }}"
     vcenter_validate_certs: false
   register: vm_info
   delegate_to: localhost

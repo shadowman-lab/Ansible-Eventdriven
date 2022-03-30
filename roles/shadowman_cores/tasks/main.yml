@@ -1,7 +1,7 @@
 ---
 
 - include_tasks: rhv_vm_increase.yml
-  when: 
+  when:
     - shadowman_cores == "increase"
     - shadowman_provision_hypervisor == "RHV"
 
