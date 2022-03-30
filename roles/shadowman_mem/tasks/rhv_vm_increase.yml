@@ -9,7 +9,7 @@
       insecure: "{{ rhvm_insecure | default(true) }}"
     delegate_to: localhost
     run_once: true
-    
+
   - name: Get current MEM info
     redhat.rhv.ovirt_vm_info:
       auth: "{{ ovirt_auth }}"
@@ -23,7 +23,7 @@
       name: "{{ inventory_hostname }}"
       memory: "{{ (result.ovirt_vms[0].memory|float / 1048576 + 256)|int }}MiB"
     delegate_to: localhost
-    
+
   always:
   - name: Logout from RHV
     redhat.rhv.ovirt_auth:

@@ -5,6 +5,6 @@
 
   vars:
     prometheus_state: stopped
-  
+
   roles:
     - shadowman_prometheus

@@ -5,6 +5,6 @@
 
   vars:
     shadowman_mem: "increase"
-    
+
   roles:
     - shadowman_mem
