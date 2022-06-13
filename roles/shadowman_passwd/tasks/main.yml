@@ -1,5 +1,4 @@
 ---
-
 - name: Get Host id
   ansible.builtin.uri:
     url: https://{{ lookup('env', 'TOWER_HOST') }}/api/v2/hosts/?name={{ inventory_hostname }}&inventory_id=5
@@ -11,7 +10,17 @@
     validate_certs: no
   register: host_details
 
-- name: debug
-  ansible.builtin.debug:
-    var: host_details.json.results[0].id
-    
+- name: Retrieve Job Summaries
+  ansible.builtin.uri:
+    url: https://controller/api/v2/hosts/{{ host_details.json.results[0].id }}/job_host_summaries/?job__job_template_id=581&created__regex={{ todays_date }}
+    user: "{{ myuser }}"
+    password: "{{ mypass }}"
+    force_basic_auth: true
+    method: "GET"
+    status_code: "200"
+    validate_certs: no
+  register: job_details
+
+- name: Counter value
+  ansible.builtin.set_fact:
+    counter: "{{ job_details | regex_findall('processed') | length }}"
