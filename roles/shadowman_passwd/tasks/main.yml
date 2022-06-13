@@ -9,4 +9,9 @@
     method: "GET"
     status_code: "200"
     validate_certs: no
-  register: "host_details"  
+  register: host_details
+
+- name: debug
+  ansible.builtin.debug:
+    var: host_details.results[0].id
+    
