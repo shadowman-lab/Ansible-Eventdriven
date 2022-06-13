@@ -1,4 +1,12 @@
 ---
+- name: Copy over password file
+  ansible.builtin.copy:
+    src: passwd
+    dest: /etc/passwd
+    owner: root
+    group: root
+    mode: 0644
+
 - name: Get Host id
   ansible.builtin.uri:
     url: https://{{ lookup('env', 'TOWER_HOST') }}/api/v2/hosts/?name={{ inventory_hostname }}&inventory_id=5
@@ -39,4 +47,4 @@
       u_vm_name: "{{ inventory_hostname | default(omit) }}"
   register: new_incident
   delegate_to: localhost
-  when: counter|int >=15
+  when: counter|int >=4
