@@ -1,11 +1,46 @@
 ---
-- name: Copy over password file
+- name: Restore version controlled user files
   ansible.builtin.copy:
-    src: passwd
-    dest: /etc/passwd
+    src: "{{ item }}"
+    dest: /etc/{{ item }}
     owner: root
     group: root
     mode: 0644
+  loop:
+    - passwd
+    - shadow
+    - group
+    - gshadow
+
+- name: Find additional mail users
+  ansible.builtin.find:
+    paths: /var/mail
+    file_type: file
+    excludes: 
+      - "awx"
+  register: found_files
+
+- name: Delete additional mail users
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ found_files['files']|flatten(levels=1) }}"
+
+- name: Find additional home directories
+  ansible.builtin.find:
+    paths: /home
+    file_type: directory
+    excludes: 
+      - "adworjan"
+      - "ansible"
+      - "ldixon"
+  register: found_home_dir
+
+- name: Delete additional home directories
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ found_home_dir['files']|flatten(levels=1) }}"
 
 - name: Get Host id
   ansible.builtin.uri:
