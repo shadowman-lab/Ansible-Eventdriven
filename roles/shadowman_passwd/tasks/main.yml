@@ -13,8 +13,8 @@
 - name: Retrieve Job Summaries
   ansible.builtin.uri:
     url: https://{{ lookup('env', 'TOWER_HOST') }}/api/v2/hosts/{{ host_details.json.results[0].id }}/job_host_summaries/?job__job_template_id=581&created__regex={{ ansible_date_time.date }}
-    user: "{{ myuser }}"
-    password: "{{ mypass }}"
+    user: "{{ lookup('env', 'TOWER_USERNAME') }}"
+    password: "{{ lookup('env', 'TOWER_PASSWORD') }}"
     force_basic_auth: true
     method: "GET"
     status_code: "200"
