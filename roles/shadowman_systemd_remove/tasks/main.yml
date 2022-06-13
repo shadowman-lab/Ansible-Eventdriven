@@ -1,0 +1,19 @@
+---
+- name: Disable and remove Path and Service
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: false
+    state: stopped
+  loop:
+    - "{{ path_unit_name }}.path"
+    - "{{ service_name }}.service"
+
+- name: Delete Path
+  ansible.builtin.file:
+    path: /etc/systemd/system/{{ path_unit_name }}.path
+    state: absent
+
+- name: Delete Service
+  ansible.builtin.file:
+    path: /etc/systemd/system/{{ service_name }}.service
+    state: absent
