@@ -1,8 +1,12 @@
 ---
-- name: Copy over password file
-  ansible.builtin.copy:
-    src: passwd
-    dest: /etc/passwd
-    owner: root
-    group: root
-    mode: 0644
+
+- name: Get Host id
+  ansible.builtin.uri:
+    url: https://{{ lookup('env', 'TOWER_HOST') }}/api/v2/hosts/?name={{ inventory_hostname }}&inventory_id=5
+    user: "{{ lookup('env', 'TOWER_USERNAME') }}"
+    password: "{{ lookup('env', 'TOWER_PASSWORD') }}"
+    force_basic_auth: true
+    method: "GET"
+    status_code: "200"
+    validate_certs: no
+  register: "host_details"  
