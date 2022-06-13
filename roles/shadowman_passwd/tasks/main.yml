@@ -24,3 +24,23 @@
 - name: Counter value
   ansible.builtin.set_fact:
     counter: "{{ job_details | regex_findall('processed') | length }}"
+
+- name: Create Support Ticket
+  servicenow.itsm.incident:
+    state: new
+    description: "Too many attempted user creations on a single host ({{ counter }} today)"
+    short_description: "User Creation Violation"
+    caller: admin
+    urgency: "medium"
+    impact: "high"
+    other:
+      u_operating_system: "{{ os | default(omit) }}"
+      u_ip_address: "{{ ip_addr | default(omit) }}"
+      u_vm_name: "{{ inventory_hostname | default(omit) }}"
+  register: new_incident
+  delegate_to: localhost
+  when: counter|int >=4
+
+- name: Display incident number
+  ansible.builtin.debug:
+    var: new_incident.record.number
