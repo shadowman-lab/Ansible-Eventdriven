@@ -39,8 +39,4 @@
       u_vm_name: "{{ inventory_hostname | default(omit) }}"
   register: new_incident
   delegate_to: localhost
-  when: counter|int >=4
-
-- name: Display incident number
-  ansible.builtin.debug:
-    var: new_incident.record.number
+  when: counter|int >=15
