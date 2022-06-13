@@ -1,0 +1,9 @@
+[Unit]
+Description=Monitor {{ path_modified}} for changes
+
+[Path]
+PathModified={{ path_modified }}
+Unit={{ systemd_service }}
+
+[Install]
+WantedBy=multi-user.target

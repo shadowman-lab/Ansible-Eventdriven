@@ -1,0 +1,8 @@
+[Unit]
+Description="Call back to Ansible Controller for Rescue"
+
+[Service]
+ExecStart=/usr/bin/curl -v -k -s -i -X POST -H 'Content-Type:application/json' --data '{"host_config_key": "{{ host_config_key }}"}' {{ callback_url }}
+
+[Install]
+WantedBy=multi-user.target

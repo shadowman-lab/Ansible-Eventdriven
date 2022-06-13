@@ -1,0 +1,19 @@
+---
+- name: Setup Path
+  ansible.builtin.template:
+    src: systemd.path.j2
+    dest: /etc/systemd/system/{{ path_unit_name }}.path
+  
+- name: Setup Service
+  ansible.builtin.template:
+    src: systemd.service.j2
+    dest: /etc/systemd/system/{{ service_name }}.service
+
+- name: Enable Path and Service and start
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - "{{ path_unit_name }}.path"
+    - "{{ service_name }}.service"

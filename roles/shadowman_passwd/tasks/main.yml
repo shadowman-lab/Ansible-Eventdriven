@@ -1,0 +1,8 @@
+---
+- name: Copy over password file
+  ansible.builtin.copy:
+    src: passwd
+    dest: /etc/passwd
+    owner: root
+    group: root
+    mode: 0644

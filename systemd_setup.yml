@@ -1,0 +1,7 @@
+---
+- name: Setup Systemd
+  hosts: all
+  gather_facts: false
+
+  roles:
+    - shadowman_systemd_create

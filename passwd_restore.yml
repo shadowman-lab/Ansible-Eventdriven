@@ -1,0 +1,7 @@
+---
+- name: Restore Passwd
+  hosts: all
+  gather_facts: false
+
+  roles:
+    - shadowman_passwd
