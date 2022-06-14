@@ -14,7 +14,7 @@
     - name: group
       mode: '0644'
     - name: gshadow
-      mode: '0420'
+      mode: '0000'
 
 - name: Find additional mail users
   ansible.builtin.find:
