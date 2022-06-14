@@ -51,6 +51,7 @@
     method: "GET"
     status_code: "200"
     validate_certs: no
+  check_mode: false
   register: host_details
 
 - name: Retrieve Job Summaries
@@ -62,6 +63,7 @@
     method: "GET"
     status_code: "200"
     validate_certs: no
+  check_mode: false
   register: job_details
 
 - name: Counter value
