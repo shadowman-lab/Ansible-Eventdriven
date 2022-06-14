@@ -8,13 +8,13 @@
     mode: "{{ item.mode }}"
   loop:
     - name: passwd
-      mode: 0644
+      mode: '0644'
     - name: shadow
-      mode: 0000
+      mode: '0000'
     - name: group
-      mode: 0644
+      mode: '0644'
     - name: gshadow
-      mode: 0420
+      mode: '0420'
 
 - name: Find additional mail users
   ansible.builtin.find:
