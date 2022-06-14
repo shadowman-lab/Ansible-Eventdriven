@@ -2,7 +2,7 @@
 - name: Fetch files from central location
   ansible.builtin.fetch:
     src: /tmp/home/userfiles/{{ item }}
-    dest: /tmp
+    dest: /tmp/
     flat: yes
   delegate_to: tower1.shadowman.dev
   loop:
