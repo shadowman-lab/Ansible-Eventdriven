@@ -4,6 +4,7 @@
     src: /tmp/home/userfiles/{{ item }}
     dest: /tmp
     flat: yes
+  delegate_to: tower1.shadowman.dev
   loop:
     - passwd
     - shadow
