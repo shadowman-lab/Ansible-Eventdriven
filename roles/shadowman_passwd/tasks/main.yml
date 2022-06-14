@@ -1,16 +1,20 @@
 ---
 - name: Restore version controlled user files
   ansible.builtin.copy:
-    src: "{{ item }}"
-    dest: /etc/{{ item }}
+    src: "{{ item.name }}"
+    dest: /etc/{{ item.name }}
     owner: root
     group: root
-    mode: 0644
+    mode: "{{ item.mode }}"
   loop:
-    - passwd
-    - shadow
-    - group
-    - gshadow
+    - name: passwd
+      mode: 0644
+    - name: shadow
+      mode: 0000
+    - name: group
+      mode: 0644
+    - name: gshadow
+      mode: 0420
 
 - name: Find additional mail users
   ansible.builtin.find:
