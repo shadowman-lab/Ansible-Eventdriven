@@ -82,15 +82,15 @@
   check_mode: false
   register: job_details
 
-- name: Counter value
+- name: Counter value of job runs on host today 
   ansible.builtin.set_fact:
     counter: "{{ job_details | regex_findall('processed') | length }}"
 
 - name: Create Support Ticket
   servicenow.itsm.incident:
     state: new
-    description: "Too many attempted user creations on a single host ({{ counter }} today)"
-    short_description: "User Creation Violation"
+    description: "Too many attempted user adds on a single host ({{ counter }} today)"
+    short_description: "User Creation Policy Violation"
     caller: admin
     urgency: "medium"
     impact: "high"
