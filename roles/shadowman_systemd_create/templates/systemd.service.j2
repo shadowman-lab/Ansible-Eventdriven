@@ -2,7 +2,7 @@
 Description="Call back to Ansible Controller for Rescue of {{ path_modified }}"
 
 [Service]
-ExecStart=/usr/bin/curl -v -k -s -i -X POST -H 'Content-Type:application/json' --data '{"host_config_key": "{{ host_config_key }}"}' {{ callback_url }}
+ExecStart=/usr/bin/curl -v -k -s -i -X POST -H 'X-Forwarded-For: {{ inventory_hostname }}' -H 'Content-Type:application/json' --data '{"host_config_key": "{{ host_config_key }}"}' {{ callback_url }}
 
 [Install]
 WantedBy=multi-user.target
