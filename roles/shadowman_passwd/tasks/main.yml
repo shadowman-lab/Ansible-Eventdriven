@@ -60,7 +60,7 @@
 
 - name: Get Host id
   ansible.builtin.uri:
-    url: https://{{ lookup('env', 'TOWER_HOST') }}/api/v2/hosts/?name={{ inventory_hostname }}&inventory_id=5
+    url: https://{{ lookup('env', 'TOWER_HOST') }}/api/v2/hosts/?name={{ inventory_hostname }}&inventory_id=53
     user: "{{ lookup('env', 'TOWER_USERNAME') }}"
     password: "{{ lookup('env', 'TOWER_PASSWORD') }}"
     force_basic_auth: true
