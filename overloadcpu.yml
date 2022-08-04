@@ -8,4 +8,4 @@
 
   tasks:
     - name: Overload CPU
-      ansible.builtin.command: 'yes > /dev/null &'
+      ansible.builtin.shell: 'yes > /dev/null &'
