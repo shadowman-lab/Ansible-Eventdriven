@@ -8,4 +8,4 @@
 
   tasks:
     - name: Stop Overload CPU
-      ansible.builtin.shell: 'killall yes'
+      ansible.builtin.command: 'killall yes'
