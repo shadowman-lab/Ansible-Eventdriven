@@ -1,0 +1,11 @@
+---
+- name: Overload CPU
+  hosts: "{{ vm_name | default('localhost') }}"
+  gather_facts: false
+
+  vars:
+    prometheus_state: stopped
+
+  tasks:
+    - name: Overload CPU
+      ansible.builtin.command: 'yes > /dev/null &'
