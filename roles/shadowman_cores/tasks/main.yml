@@ -1,31 +1,37 @@
 ---
 
-- include_tasks: rhv_vm_increase.yml
+- name: RHV Core increase
+  ansible.builtin.include_tasks: rhv_vm_increase.yml
   when:
     - shadowman_cores == "increase"
     - shadowman_provision_hypervisor == "RHV"
 
-- include_tasks: rhv_vm_decrease.yml
+- name: RHV Core decrease
+  ansible.builtin.include_tasks: rhv_vm_decrease.yml
   when:
     - shadowman_cores == "decrease"
     - shadowman_provision_hypervisor == "RHV"
 
-- include_tasks: rhv_vm_restore.yml
+- name: RHV Core restore
+  ansible.builtin.include_tasks: rhv_vm_restore.yml
   when:
     - shadowman_cores == "restore"
     - shadowman_provision_hypervisor == "RHV"
 
-- include_tasks: vmware_vm_increase.yml
+- name: VMWare Core increase
+  ansible.builtin.include_tasks: vmware_vm_increase.yml
   when:
     - shadowman_cores == "increase"
     - shadowman_provision_hypervisor == "VMWare"
 
-- include_tasks: vmware_vm_decrease.yml
+- name: VMWare Core decrease
+  ansible.builtin.include_tasks: vmware_vm_decrease.yml
   when:
     - shadowman_cores == "decrease"
     - shadowman_provision_hypervisor == "VMWare"
 
-- include_tasks: vmware_vm_restore.yml
+- name: VMWare Core restore
+  ansible.builtin.include_tasks: vmware_vm_restore.yml
   when:
     - shadowman_cores == "restore"
     - shadowman_provision_hypervisor == "VMWare"

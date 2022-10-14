@@ -1,31 +1,37 @@
 ---
 
-- include_tasks: rhv_vm_increase.yml
+- name: RHV MEM increase
+  ansible.builtin.include_tasks: rhv_vm_increase.yml
   when:
     - shadowman_mem == "increase"
     - shadowman_provision_hypervisor == "RHV"
 
-- include_tasks: rhv_vm_decrease.yml
+- name: RHV MEM decrease
+  ansible.builtin.include_tasks: rhv_vm_decrease.yml
   when:
     - shadowman_mem == "decrease"
     - shadowman_provision_hypervisor == "RHV"
 
-- include_tasks: rhv_vm_restore.yml
+- name: RHV MEM restore
+  ansible.builtin.include_tasks: rhv_vm_restore.yml
   when:
     - shadowman_mem == "restore"
     - shadowman_provision_hypervisor == "RHV"
 
-- include_tasks: vmware_vm_increase.yml
+- name: VMWare MEM increase
+  ansible.builtin.include_tasks: vmware_vm_increase.yml
   when:
     - shadowman_mem == "increase"
     - shadowman_provision_hypervisor == "VMWare"
 
-- include_tasks: vmware_vm_decrease.yml
+- name: VMWare MEM decrease
+  ansible.builtin.include_tasks: vmware_vm_decrease.yml
   when:
     - shadowman_mem == "decrease"
     - shadowman_provision_hypervisor == "VMWare"
 
-- include_tasks: vmware_vm_restore.yml
+- name: VMWare MEM restore
+  ansible.builtin.include_tasks: vmware_vm_restore.yml
   when:
     - shadowman_mem == "restore"
     - shadowman_provision_hypervisor == "VMWare"
