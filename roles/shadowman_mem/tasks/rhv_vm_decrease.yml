@@ -22,7 +22,7 @@
     redhat.rhv.ovirt_vm:
       auth: "{{ ovirt_auth }}"
       name: "{{ inventory_hostname }}"
-      memory: "{{ (result.ovirt_vms[0].memory|float / 1048576 - 256)|int }}MiB"
+      memory: "{{ (result.ovirt_vms[0].memory | float / 1048576 - 256) | int }}MiB"
     delegate_to: localhost
 
   always:

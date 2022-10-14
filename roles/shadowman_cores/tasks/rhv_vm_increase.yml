@@ -22,7 +22,7 @@
     redhat.rhv.ovirt_vm:
       auth: "{{ ovirt_auth }}"
       name: "{{ inventory_hostname }}"
-      cpu_cores: "{{ result.ovirt_vms[0].cpu.topology.cores|int + 5 }}"
+      cpu_cores: "{{ result.ovirt_vms[0].cpu.topology.cores | int + 5 }}"
     delegate_to: localhost
 
   always:

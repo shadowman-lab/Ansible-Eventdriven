@@ -3,7 +3,7 @@
   ansible.builtin.fetch:
     src: /tmp/home/userfiles/{{ item }}
     dest: /tmp/
-    flat: yes
+    flat: true
   delegate_to: tower1.shadowman.dev
   loop:
     - passwd
@@ -32,7 +32,7 @@
   ansible.builtin.find:
     paths: /var/mail
     file_type: file
-    excludes: 
+    excludes:
       - "awx"
   register: found_files
 
@@ -40,13 +40,13 @@
   ansible.builtin.file:
     path: "{{ item.path }}"
     state: absent
-  loop: "{{ found_files['files']|flatten(levels=1) }}"
+  loop: "{{ found_files['files'] | flatten(levels=1) }}"
 
 - name: Find additional home directories
   ansible.builtin.find:
     paths: /home
     file_type: directory
-    excludes: 
+    excludes:
       - "adworjan"
       - "ansible"
       - "ldixon"
@@ -56,7 +56,7 @@
   ansible.builtin.file:
     path: "{{ item.path }}"
     state: absent
-  loop: "{{ found_home_dir['files']|flatten(levels=1) }}"
+  loop: "{{ found_home_dir['files'] | flatten(levels=1) }}"
 
 - name: Get Host id
   ansible.builtin.uri:
@@ -66,7 +66,7 @@
     force_basic_auth: true
     method: "GET"
     status_code: "200"
-    validate_certs: no
+    validate_certs: false
   check_mode: false
   register: host_details
 
@@ -78,11 +78,11 @@
     force_basic_auth: true
     method: "GET"
     status_code: "200"
-    validate_certs: no
+    validate_certs: false
   check_mode: false
   register: job_details
 
-- name: Counter value of job runs on host today 
+- name: Counter value of job runs on host today
   ansible.builtin.set_fact:
     counter: "{{ job_details | regex_findall('processed') | length }}"
 
