@@ -1,0 +1,21 @@
+---
+- name: Run AAP workflow
+  hosts: all
+  gather_facts: false
+  
+  tasks:
+    - name: Run AAP Workflow
+      ansible.builtin.uri:
+        url: https://{{ aap_url }}/api/v2/workflow_job_templates/612/launch/
+        method: POST
+        user: "{{ aap_user }}"
+        validate_certs: False
+        force_basic_auth: True
+        password: "{{ aap_password }}"
+        status_code: 201
+        body:
+          extra_vars:
+            vm_name: "{{ inventory_hostname }}"
+        body_format: json
+      delegate_to: localhost
+...
