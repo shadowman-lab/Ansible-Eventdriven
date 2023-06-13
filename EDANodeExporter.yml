@@ -24,7 +24,7 @@
     - shadowman_prometheus
 
 - name: Close an incident in ServiceNow
-  hosts: localhost
+  hosts: "{{ vm_name }}"
   gather_facts: false
   connection: local
 
