@@ -30,6 +30,7 @@
 
   vars:
     servicenow_ticket: "close"
+    comment: Node Exporter started, closing ticket
 
   roles:
     - servicenow_ticket
