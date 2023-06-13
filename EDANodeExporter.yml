@@ -1,0 +1,35 @@
+---
+- name: Create an incident in ServiceNow from EDA
+  hosts: "{{ vm_name }}"
+  gather_facts: false
+  connection: local
+
+  vars:
+    servicenow_ticket: "create"
+    sn_urgency: low
+    sn_impact: low
+    incident_description: "Prometheus Node Exporter is down"
+
+  roles:
+    - servicenow_ticket
+
+- name: Start Prometheus Node Exporter
+  hosts: "{{ vm_name }}"
+  gather_facts: false
+
+  vars:
+    prometheus_state: started
+
+  roles:
+    - shadowman_prometheus
+
+- name: Close an incident in ServiceNow
+  hosts: localhost
+  gather_facts: false
+  connection: local
+
+  vars:
+    servicenow_ticket: "close"
+
+  roles:
+    - servicenow_ticket

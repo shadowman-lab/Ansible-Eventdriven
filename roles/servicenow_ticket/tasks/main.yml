@@ -1,0 +1,8 @@
+---
+- name: Create ticket
+  ansible.builtin.include_tasks: servicenow_create.yml
+  when: servicenow_ticket == "create"
+
+- name: Close ticket
+  ansible.builtin.include_tasks: servicenow_close.yml
+  when: servicenow_ticket == "close"
