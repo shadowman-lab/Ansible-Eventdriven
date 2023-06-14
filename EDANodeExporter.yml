@@ -13,6 +13,18 @@
   roles:
     - servicenow_ticket
 
+- name: Notify Mattermost Channel
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    alert_title: "Prometheus Issue"
+    alert_issue_value: "Prometheus Node Exporter is down"
+    alert_details_value: "Prometheus Node Exporter is not responding on {{ vm_name }}"
+
+  roles:
+    - shadowman_mattermost
+
 - name: Start Prometheus Node Exporter
   hosts: "{{ vm_name }}"
   gather_facts: false

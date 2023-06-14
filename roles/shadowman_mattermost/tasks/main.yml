@@ -1,0 +1,16 @@
+---
+- name: Send notification message via Mattermost
+  community.general.mattermost:
+    url: "{{ mattermost_url }}"
+    api_key: "{{ mattermost_api_key }}"
+    attachments:
+      - text: "! ALERT !"
+        color: '#ff00dd'
+        title: "{{ alert_title }}"
+        fields:
+          - title: Issue
+            value: "{{ alert_issue_value }}"
+            short: true
+          - title: Details
+            value: "{{ alert_details_value }}"
+            short: true
