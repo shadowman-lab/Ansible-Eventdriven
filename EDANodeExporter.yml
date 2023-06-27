@@ -13,7 +13,7 @@
   roles:
     - servicenow_ticket
 
-- name: Notify Mattermost Channel
+- name: Notify Mattermost Channel of Exporter Down
   hosts: localhost
   gather_facts: false
 
@@ -46,3 +46,15 @@
 
   roles:
     - servicenow_ticket
+
+- name: Notify Mattermost Channel of Exporter Restored
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    alert_title: "Prometheus Issue Resolved"
+    alert_issue_value: "Prometheus Node Exporter is restored"
+    alert_details_value: "Prometheus Node Exporter is restored on {{ vm_name }}"
+
+  roles:
+    - shadowman_mattermost
