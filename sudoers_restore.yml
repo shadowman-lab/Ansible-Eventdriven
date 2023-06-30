@@ -1,0 +1,6 @@
+---
+- name: Restore Sudoers File
+  hosts: all
+
+  roles:
+    - shadowman_sudoers

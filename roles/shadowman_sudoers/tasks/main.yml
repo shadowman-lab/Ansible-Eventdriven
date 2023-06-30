@@ -1,0 +1,64 @@
+---
+- name: Fetch files from central location
+  ansible.builtin.fetch:
+    src: /tmp/home/userfiles/{{ item }}
+    dest: /tmp/
+    flat: true
+  delegate_to: tower1.shadowman.dev
+  loop:
+    - sudoers
+
+- name: Restore version controlled sudoers files
+  ansible.builtin.copy:
+    src: /tmp/{{ item.name }}
+    dest: /etc/{{ item.name }}
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  loop:
+    - name: sudoers
+      mode: '0440'
+
+- name: Get Host id
+  ansible.builtin.uri:
+    url: https://{{ lookup('env', 'TOWER_HOST') }}/api/v2/hosts/?name={{ inventory_hostname }}&inventory_id=53
+    user: "{{ lookup('env', 'TOWER_USERNAME') }}"
+    password: "{{ lookup('env', 'TOWER_PASSWORD') }}"
+    force_basic_auth: true
+    method: "GET"
+    status_code: "200"
+    validate_certs: false
+  check_mode: false
+  register: host_details
+
+- name: Retrieve Job Summaries
+  ansible.builtin.uri:
+    url: https://{{ lookup('env', 'TOWER_HOST') }}/api/v2/hosts/{{ host_details.json.results[0].id }}/job_host_summaries/?job__job_template_id=722&created__regex={{ ansible_date_time.date }}
+    user: "{{ lookup('env', 'TOWER_USERNAME') }}"
+    password: "{{ lookup('env', 'TOWER_PASSWORD') }}"
+    force_basic_auth: true
+    method: "GET"
+    status_code: "200"
+    validate_certs: false
+  check_mode: false
+  register: job_details
+
+- name: Counter value of job runs on host today
+  ansible.builtin.set_fact:
+    counter: "{{ job_details | regex_findall('processed') | length }}"
+
+- name: Create Support Ticket
+  servicenow.itsm.incident:
+    state: new
+    description: "Sudoers file modified too many times on a single host ({{ counter }} today)"
+    short_description: "Sudoers Policy Violation"
+    caller: admin
+    urgency: "high"
+    impact: "high"
+    other:
+      u_operating_system: "{{ os | default(omit) }}"
+      u_ip_address: "{{ ip_addr | default(omit) }}"
+      u_vm_name: "{{ inventory_hostname | default(omit) }}"
+  register: new_incident
+  delegate_to: localhost
+  when: counter|int >=3
