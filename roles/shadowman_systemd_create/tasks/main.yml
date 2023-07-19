@@ -5,7 +5,7 @@
     dest: /etc/systemd/system/{{ path_unit_name }}.path
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
 
 - name: Setup Service
   ansible.builtin.template:
@@ -13,7 +13,7 @@
     dest: /etc/systemd/system/{{ service_name }}.service
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
 
 - name: Enable Path and Service and start
   ansible.builtin.systemd:
