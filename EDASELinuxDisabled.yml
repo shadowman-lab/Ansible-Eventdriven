@@ -1,0 +1,61 @@
+---
+- name: Create an incident in ServiceNow from EDA
+  hosts: "{{ vm_name }}"
+  gather_facts: false
+  connection: local
+
+  vars:
+    servicenow_ticket: "create"
+    sn_urgency: medium
+    sn_impact: medium
+    incident_description: "SELinux was disabled"
+
+  roles:
+    - servicenow_ticket
+
+- name: Notify Mattermost Channel of SELinux being disabled
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    alert_title: "SELinux Issue"
+    alert_issue_value: "SELinux is disabled"
+    alert_details_value: "SELinux is disabled on {{ vm_name }}"
+
+  roles:
+    - shadowman_mattermost
+
+- name: Enable SELinux
+  hosts: "{{ vm_name }}"
+  gather_facts: false
+
+  vars:
+    selinux_policy: targeted
+    selinux_state: enforcing
+
+  roles:
+    - shadowman_selinux
+
+- name: Close an incident in ServiceNow
+  hosts: "{{ vm_name }}"
+  gather_facts: false
+  connection: local
+
+  vars:
+    servicenow_ticket: "close"
+    comment: SELinux is enabled, closing ticket
+
+  roles:
+    - servicenow_ticket
+
+- name: Notify Mattermost Channel of SELinux enabled
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    alert_title: "SELinux Issue Resolved"
+    alert_issue_value: "SELinux has been enabled"
+    alert_details_value: "SELinux has been enabled on {{ vm_name }}"
+
+  roles:
+    - shadowman_mattermost
