@@ -17,3 +17,20 @@
     name: "Insights Remediation"
     wait: true
   delegate_to: localhost
+
+- name: Send notification message via Mattermost of CVE resolved
+  community.general.mattermost:
+    url: "{{ mattermost_url }}"
+    api_key: "{{ mattermost_api_key }}"
+    attachments:
+      - text: "! ALERT !"
+        color: '#ff00dd'
+        title: "CVE Issue"
+        fields:
+          - title: Issue
+            value: "CVE Issue Resolved"
+            short: true
+          - title: Details
+            value: "CVE {{ item }} resolved on host {{ insights_adv_target_host }}."
+            short: true
+  delegate_to: localhost
