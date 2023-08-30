@@ -1,0 +1,3 @@
+---
+mattermost_url: "https://cicd.shadowman.dev:8065"
+insights_api_url: "https://console.redhat.com/api"
