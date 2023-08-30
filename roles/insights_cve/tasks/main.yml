@@ -1,0 +1,184 @@
+- name: Create a list for each host with advisories
+  ansible.builtin.set_fact:
+    hosts_with_adv: "{{ hosts_with_adv | default([]) + [{'hostname': insights_adv_host_data.display_name,
+                                    'insights_id': insights_adv_host_data.inventory_id,
+                                    'advisory_id': item.payload.advisory_id,
+                                    'advisory_name': item.payload.advisory_name,
+                                    'advisory_type': item.payload.advisory_type}] }}"
+  loop: "{{ insights_adv_data }}"
+  delegate_to: localhost
+
+#    - name: Debug message
+#      ansible.builtin.debug:
+#        msg:
+#          - "hostname: {{ item.hostname }}"
+#          - "insights_id: {{ item.insights_id }}"
+#          - "advisory_id: {{ item.advisory_id }}"
+#          - "advisory_name: {{ item.advisory_name }}"
+#          - "advisory_type:  {{ item.advisory_type }}"
+#      loop: "{{ hosts_with_adv }}"
+
+- name: Create a list of advisories
+  no_log: true
+  ansible.builtin.uri:
+    url: "{{ insights_api_url }}/patch/v3/advisories/{{ item.advisory_name }}"
+    method: GET
+    return_content: true
+    user: "{{ insights_auth_user }}"
+    password: "{{ insights_auth_password }}"
+    force_basic_auth: true
+    status_code: 200
+  register: insights_cves
+  loop: "{{ hosts_with_adv }}"
+  delegate_to: localhost
+
+- name: Create a list for each host with CVEs
+  ansible.builtin.set_fact:
+    hosts_with_cve: "{{ hosts_with_cve | default([]) + [{'hostname': insights_adv_host_data.display_name,
+                                    'insights_id': insights_adv_host_data.inventory_id,
+                                    'advisory_id': item.json.data.id,
+                                    'cves': item.json.data.attributes.cves,
+                                    'advisory_type_name': item.json.data.attributes.advisory_type_name,
+                                    'severity': item.json.data.attributes.severity,
+                                    'description': item.json.data.attributes.description}] }}"
+  loop: "{{ insights_cves.results }}"
+  delegate_to: localhost
+  when: item.json.data.attributes.cves | length > 0
+
+- name: Create a list of security CVEs with severity >= 3
+  ansible.builtin.set_fact:
+    cve_list: "{{ cve_list | default([]) + item.cves }}"
+  loop: "{{ hosts_with_cve }}"
+  delegate_to: localhost
+  when:
+    - item.severity | int >= 3
+    - item.advisory_type_name == 'security'
+    - hosts_with_cve is defined
+
+- name: If there are in fact any CVEs that are security and with a severity >= 3
+  block:
+    - name: Print out the total number of security CVEs with severity >= 3 for host "{{ insights_adv_target_host }}"
+      ansible.builtin.debug:
+        msg: "Detected a total of {{ cve_list | length }} security CVEs with severity >= 3 of a total of {{ hosts_with_cve }} detected for host {{ insights_adv_target_host }}"
+      loop: "{{ cve_list }}"
+      delegate_to: localhost
+
+    - name: Send notification message via Mattermost on CVE Issue
+      community.general.mattermost:
+        url: "{{ mattermost_url }}"
+        api_key: "{{ mattermost_api_key }}"
+        attachments:
+          - text: "! ALERT !"
+            color: '#ff00dd'
+            title: "CVE Issue"
+            fields:
+              - title: Issue
+                value: "CVE Issue Detected"
+                short: true
+              - title: Details
+                value: "Detected {{ cve_list | length }} CVEs on host {{ insights_adv_target_host }}."
+                short: true
+      delegate_to: localhost
+
+    - name: Generate playbooks to remediate vulnerabilities
+      ansible.builtin.uri:
+        url: "{{ insights_api_url }}/remediations/v1/playbook"
+        method: POST
+        user: "{{ insights_auth_user }}"
+        password: "{{ insights_auth_password }}"
+        validate_certs: false
+        force_basic_auth: true
+        status_code: 200
+        return_content: true
+        headers:
+          Content-Type: "application/json"
+          accept: "text/vnd.yaml"
+          Connection: "keep-alive"
+        body_format: json
+        body: "{{ lookup('ansible.builtin.template', 'templates/pb_generator_body.j2') }}"
+      register: pbs_per_host
+      loop: "{{ cve_list | first | split }}"
+      delegate_to: localhost
+
+    # - name: Insights | Create playbooks locally
+    #   ansible.builtin.copy:
+    #     dest: "{{ playbook_dir }}/{{ item.item }}-remediation-{{ insights_adv_target_host }}.yml"
+    #     content: "{{ item.content }}"
+    #     mode: "0755"
+    #   loop: "{{ pbs_per_host.results }}"
+    #   delegate_to: localhost
+
+    # - name: Run CVE remediation playbook on "{{ insights_adv_target_host }}"
+    #   ansible.builtin.shell:
+    #     cmd: ansible-playbook -i azure_rm.yml -e ansible_user="{{ ansible_user }}" -e ansible_password="{{ ansible_password }}" "{{ playbook_dir }}/{{ item.item }}-remediation-{{ insights_adv_host_data.display_name }}.yml"
+    #   loop: "{{ pbs_per_host.results }}"
+    #   when:
+    #     - hostvars[inventory_hostname].insights_provider_type == 'azure'
+    #     - ansible_os_family == 'RedHat'
+    #     - ansible_facts['distribution'] == "RedHat"
+    #   delegate_to: localhost
+
+    # - name: Run CVE remediation playbook on "{{ insights_adv_target_host }}"
+    #   ansible.builtin.shell:
+    #     cmd: ansible-playbook -i aws_ec2.yml -e ansible_user="{{ ansible_user }}" -e ansible_ssh_private_key_file="/runner/artifacts/{{ tower_job_id }}/ssh_key_data" "{{ playbook_dir }}/{{ item.item }}-remediation-{{ insights_adv_host_data.display_name }}.yml"
+    #   loop: "{{ pbs_per_host.results }}"
+    #   when:
+    #     - hostvars[inventory_hostname].insights_provider_type == 'aws'
+    #     - ansible_os_family == 'RedHat'
+    #     - ansible_facts['distribution'] == "RedHat"
+    #     - ansible_password is not defined
+    #   delegate_to: localhost
+
+    # - name: Run CVE remediation playbook on "{{ insights_adv_target_host }}"
+    #   ansible.builtin.shell:
+    #     cmd: ansible-playbook -i aws_ec2.yml -e ansible_user="{{ ansible_user }}" -e ansible_password="{{ ansible_password }}" "{{ playbook_dir }}/{{ item.item }}-remediation-{{ insights_adv_host_data.display_name }}.yml"
+    #   loop: "{{ pbs_per_host.results }}"
+    #   when:
+    #     - hostvars[inventory_hostname].insights_provider_type == 'aws'
+    #     - ansible_os_family == 'RedHat'
+    #     - ansible_facts['distribution'] == "RedHat"
+    #     - ansible_password is defined
+    #   delegate_to: localhost
+
+    # - name: Send notification message via Mattermost of CVE resolved
+    #   community.general.mattermost:
+    #     url: "{{ mattermost_url }}"
+    #     api_key: "{{ mattermost_api_key }}"
+    #     attachments:
+    #       - text: "! ALERT !"
+    #         color: '#ff00dd'
+    #         title: "CVE Issue"
+    #         fields:
+    #           - title: Issue
+    #             value: "CVE Issue Resolved"
+    #             short: true
+    #           - title: Details
+    #             value: "CVE {{ item.item }} resolved on host {{ insights_adv_target_host }}."
+    #             short: true
+    #   loop: "{{ pbs_per_host.results }}"
+    #   when:
+    #     - hostvars[inventory_hostname].insights_provider_type == 'aws'
+    #     - ansible_os_family == 'RedHat'
+    #     - ansible_facts['distribution'] == "RedHat"
+    #     - ansible_password is defined
+    #   delegate_to: localhost
+
+- name: If no CVE_list
+  when: cve_list is not defined
+  block:
+    - name: Send notification message via Mattermost on no CVEs
+      community.general.mattermost:
+        url: "{{ mattermost_url }}"
+        api_key: "{{ mattermost_api_key }}"
+        attachments:
+          - text: "! ALERT !"
+            color: '#ff00dd'
+            title: "CVE None Issue"
+            fields:
+              - title: Issue
+                value: "CVE None Issue"
+                short: true
+              - title: Details
+                value: "No important security CVEs detected on host {{ insights_adv_target_host }}."
+                short: true
+      delegate_to: localhost
