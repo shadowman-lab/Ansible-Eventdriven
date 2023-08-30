@@ -59,7 +59,7 @@
   block:
     - name: Print out the total number of security CVEs with severity >= 3 for host "{{ insights_adv_target_host }}"
       ansible.builtin.debug:
-        msg: "Detected a total of {{ cve_list | length }} security CVEs with severity >= 3 of a total of {{ hosts_with_cve }} detected for host {{ insights_adv_target_host }}"
+        msg: "Detected {{ cve_list | length }} security CVEs with severity >= 3 out of {{ hosts_with_cve }} for host {{ insights_adv_target_host }}"
       loop: "{{ cve_list }}"
       delegate_to: localhost
 
