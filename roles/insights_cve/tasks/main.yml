@@ -56,6 +56,9 @@
     - hosts_with_cve is defined
 
 - name: If there are in fact any CVEs that are security and with a severity >= 3
+  when:
+    - cve_list is defined
+    - hosts_with_cve is defined
   block:
     - name: Print out the total number of security CVEs with severity >= 3 for host "{{ insights_adv_target_host }}"
       ansible.builtin.debug:
