@@ -1,0 +1,19 @@
+---
+- name: Update Remediation Job Template
+  ansible.controller.job_template:
+    name: "Insights Remediation"
+    job_type: "run"
+    credentials:
+      - "Ansible Linux Service Account"
+    inventory: "Shadowman Production"
+    project: "Red Hat Insights"
+    playbook: "{{ item }}-{{ pbs_per_host.results[my_idx | int].id }}"
+    become_enabled: true
+    state: present
+  delegate_to: localhost
+
+- name: Launch Remediation Job Template
+  ansible.controller.job_launch:
+    name: "Insights Remediation"
+    wait: true
+  delegate_to: localhost

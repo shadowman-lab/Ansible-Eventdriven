@@ -80,9 +80,9 @@
                 short: true
       delegate_to: localhost
 
-    - name: Generate playbooks to remediate vulnerabilities
+    - name: Generate playbooks in Insights to remediate vulnerabilities
       ansible.builtin.uri:
-        url: "{{ insights_api_url }}/remediations/v1/playbook"
+        url: "{{ insights_api_url }}/remediations/v1/remediations"
         method: POST
         user: "{{ insights_auth_user }}"
         password: "{{ insights_auth_password }}"
@@ -100,6 +100,17 @@
       loop: "{{ cve_list | first | split }}"
       delegate_to: localhost
 
+    - name: Launch a project update from Red Hat Insights
+      ansible.controller.project_update:
+        project: "Red Hat Insights"
+        timeout: 60
+
+    - name: Include remediation tasks
+      ansible.builtin.include_tasks: remediation.yml
+      loop: "{{ cve_list | first | split }}"
+      loop_control:
+        index_var: my_idx
+
     # - name: Insights | Create playbooks locally
     #   ansible.builtin.copy:
     #     dest: "{{ playbook_dir }}/{{ item.item }}-remediation-{{ insights_adv_target_host }}.yml"
@@ -111,7 +122,7 @@
     # - name: Run CVE remediation playbook on "{{ insights_adv_target_host }}"
     #   ansible.builtin.shell:
     #     cmd: ansible-playbook -i azure_rm.yml -e ansible_user="{{ ansible_user }}" -e ansible_password="{{ ansible_password }}" "{{ playbook_dir }}/{{ item.item }}-remediation-{{ insights_adv_host_data.display_name }}.yml"
-    #   loop: "{{ pbs_per_host.results }}"
+    #   loop: "{{ pbs_per_host.results.id }}"
     #   when:
     #     - hostvars[inventory_hostname].insights_provider_type == 'azure'
     #     - ansible_os_family == 'RedHat'
