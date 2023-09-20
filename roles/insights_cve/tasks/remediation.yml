@@ -10,12 +10,14 @@
     playbook: "{{ item | lower }}-{{ pbs_per_host.results[my_idx | int].id }}"
     become_enabled: true
     state: present
+    validate_certs: false
   delegate_to: localhost
 
 - name: Launch Remediation Job Template
   ansible.controller.job_launch:
     name: "Insights Remediation"
     wait: true
+    validate_certs: false
   delegate_to: localhost
 
 - name: Send notification message via Mattermost of CVE resolved

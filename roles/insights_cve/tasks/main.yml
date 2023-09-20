@@ -107,6 +107,7 @@
       ansible.controller.project_update:
         project: "Red Hat Insights"
         timeout: 60
+        validate_certs: false
 
     - name: Perform remediation tasks using AAP
       ansible.builtin.include_tasks: remediation.yml
