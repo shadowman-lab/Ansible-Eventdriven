@@ -79,7 +79,7 @@
                 value: "CVE Issue Detected"
                 short: true
               - title: Details
-                value: "Detected {{ cve_list | length }} CVEs on host {{ insights_adv_target_host }}."
+                value: "Detected {{ cve_list | length }} CVEs with a severity >= 3 on host {{ insights_adv_target_host }}."
                 short: true
       delegate_to: localhost
 
