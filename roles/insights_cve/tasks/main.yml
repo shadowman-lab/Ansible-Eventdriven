@@ -108,6 +108,7 @@
         project: "Red Hat Insights"
         timeout: 60
         validate_certs: false
+      delegate_to: localhost
 
     - name: Perform remediation tasks using AAP
       ansible.builtin.include_tasks: remediation.yml
