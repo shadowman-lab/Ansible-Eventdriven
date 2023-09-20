@@ -103,6 +103,10 @@
       loop: "{{ cve_list | first | split }}"
       delegate_to: localhost
 
+    - name: Debug pbs_per_host
+      ansible.builtin.debug:
+        var: pbs_per_host
+
     - name: Launch a project update from Red Hat Insights
       ansible.controller.project_update:
         project: "Red Hat Insights"
