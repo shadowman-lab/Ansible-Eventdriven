@@ -33,6 +33,6 @@
             value: "CVE Issue Resolved"
             short: true
           - title: Details
-            value: "CVE {{ item }} resolved on host {{ insights_adv_target_host }}."
+            value: "{{ item }} resolved on host {{ insights_adv_target_host }}."
             short: true
   delegate_to: localhost
