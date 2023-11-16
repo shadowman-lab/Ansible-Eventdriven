@@ -62,8 +62,7 @@
   block:
     - name: Print out the total number of security CVEs with severity >= 3 for host "{{ insights_adv_target_host }}"
       ansible.builtin.debug:
-        msg: "Detected {{ cve_list | length }} security CVEs with severity >= 3 out of {{ hosts_with_cve }} for host {{ insights_adv_target_host }}"
-      loop: "{{ cve_list }}"
+        msg: "Detected {{ cve_list | length }} security CVEs with severity >= 3 for host {{ insights_adv_target_host }}"
       delegate_to: localhost
 
     - name: Send notification message via Mattermost on CVE Issue
@@ -100,7 +99,7 @@
         body_format: json
         body: "{{ lookup('ansible.builtin.template', 'templates/pb_generator_body.j2') }}"
       register: pbs_per_host
-      loop: "{{ cve_list | first | split }}"
+      loop: "{{ cve_list }}"
       delegate_to: localhost
 
     - name: Launch a project update from Red Hat Insights
@@ -112,7 +111,7 @@
 
     - name: Perform remediation tasks using AAP
       ansible.builtin.include_tasks: remediation.yml
-      loop: "{{ cve_list | first | split }}"
+      loop: "{{ cve_list }}"
       loop_control:
         index_var: my_idx
 
