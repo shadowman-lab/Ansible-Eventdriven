@@ -3,5 +3,8 @@
   hosts: localhost
   gather_facts: false
 
+  vars:
+    alert_details_value: "{{ details }}{{ vm_name | default('')}}"
+
   roles:
     - shadowman_mattermost
