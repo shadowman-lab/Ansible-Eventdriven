@@ -1,0 +1,49 @@
+---
+- name: Gather cluster info from given datacenter
+  community.vmware.vmware_cluster_info:
+    validate_certs: false
+    datacenter: Shadowman
+  delegate_to: localhost
+  register: cluster_info
+
+- name: Get hosts
+  ansible.builtin.set_fact:
+    cluster_hosts: "{{ cluster_info | json_query('clusters.*.hosts') | flatten }}"
+
+- name: Get host info
+  community.vmware.vmware_host_facts:
+    esxi_hostname: "{{ item.name }}"
+    validate_certs: false
+  register: esx_fact
+  loop: "{{ cluster_hosts }}"
+
+- name: Find ESX host info with most memory
+  ansible.builtin.set_fact:
+    most_esx_host_info: "{{ esx_fact.results | sort(attribute='ansible_facts.ansible_memfree_mb') | last }}"
+
+- name: Find ESX host name with most memory
+  ansible.builtin.set_fact:
+    most_esx_host_name: "{{ most_esx_host_info.ansible_facts.ansible_hostname }}"
+
+- name: Gather all VMs
+  community.vmware.vmware_vm_info:
+    validate_certs: false
+    vm_type: vm
+    show_resource_pool: false
+    show_net: false
+    show_mac_address: false
+    show_folder: false
+    show_datastore: false
+    show_datacenter: false
+    show_cluster: false
+  register: vms
+
+- name: Get name of VM on overloaded esx host
+  ansible.builtin.set_fact:
+    vmtomove: "{{ vms.virtual_machines | selectattr('esxi_hostname', 'equalto', overloadedesx) | map(attribute='guest_name') | list | first }}"
+
+- name: Perform vMotion of virtual machine
+  community.vmware.vmware_vmotion:
+    validate_certs: false
+    vm_name: "{{ vmtomove }}"
+    destination_host: "{{ most_esx_host_name }}"
