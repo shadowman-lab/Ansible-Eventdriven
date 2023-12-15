@@ -6,26 +6,26 @@
   delegate_to: localhost
   register: cluster_info
 
-- name: Get hosts
+- name: Determine ESX hosts in datacenter
   ansible.builtin.set_fact:
     cluster_hosts: "{{ cluster_info | json_query('clusters.*.hosts') | flatten }}"
 
-- name: Get host info
+- name: Get ESX host info
   community.vmware.vmware_host_facts:
     esxi_hostname: "{{ item.name }}"
     validate_certs: false
   register: esx_fact
   loop: "{{ cluster_hosts }}"
 
-- name: Find ESX host info with most memory
+- name: Determine ESX host info with most memory
   ansible.builtin.set_fact:
     most_esx_host_info: "{{ esx_fact.results | sort(attribute='ansible_facts.ansible_memfree_mb') | last }}"
 
-- name: Find ESX host name with most memory
+- name: Determine ESX host name with most memory
   ansible.builtin.set_fact:
     most_esx_host_name: "{{ most_esx_host_info.ansible_facts.ansible_hostname }}"
 
-- name: Gather all VMs
+- name: Gather all VM Information
   community.vmware.vmware_vm_info:
     validate_certs: false
     vm_type: vm
@@ -42,7 +42,7 @@
   ansible.builtin.set_fact:
     vmtomove: "{{ vms.virtual_machines | selectattr('esxi_hostname', 'equalto', overloadedesx) | map(attribute='guest_name') | list | first }}"
 
-- name: Perform vMotion of virtual machine
+- name: Perform vMotion of virtual machine to most free ESX host
   community.vmware.vmware_vmotion:
     validate_certs: false
     vm_name: "{{ vmtomove }}"
