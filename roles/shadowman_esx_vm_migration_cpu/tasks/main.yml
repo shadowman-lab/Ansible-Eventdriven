@@ -1,0 +1,45 @@
+---
+- name: Get Login to VCenter Using PowerCLI and get ESX Host information
+  ansible.windows.win_powershell:
+    script: |
+      Connect-VIServer -Server {{ lookup('ansible.builtin.env', 'VMWARE_HOST') }}
+        -Protocol https -User '{{ lookup('ansible.builtin.env', 'VMWARE_USERNAME') }}' -Password '{{ lookup('ansible.builtin.env', 'VMWARE_PASSWORD') }}'
+      Get-VMHost | select-object Name, @{l='CPUFreeMHz';e={("{0:N0}" -f $_.CPUtotalMHz - $_.CpuUsageMHz)}},
+      @{l='MemoryFreeGB';e={($_.memorytotalGB - $_.memoryUsageGB).tostring("##.##")}}
+  register: esxinfo
+
+- name: Determine ESX host with most CPU Free
+  ansible.builtin.set_fact:
+    most_esx_host_info: "{{ esxinfo.output[1:] | sort(attribute='CPUFreeMHz') | last }}"
+  delegate_to: localhost
+
+- name: Determine ESX host Name with most CPU Free
+  ansible.builtin.set_fact:
+    most_esx_host_name: "{{ most_esx_host_info.Name }}"
+  delegate_to: localhost
+
+- name: Gather all VM Information
+  community.vmware.vmware_vm_info:
+    validate_certs: false
+    vm_type: vm
+    show_resource_pool: false
+    show_net: false
+    show_mac_address: false
+    show_folder: false
+    show_datastore: false
+    show_datacenter: false
+    show_cluster: false
+  register: vms
+  delegate_to: localhost
+
+- name: Get name of VM on overloaded esx host
+  ansible.builtin.set_fact:
+    vmtomove: "{{ vms.virtual_machines | selectattr('esxi_hostname', 'equalto', overloadedesx) | map(attribute='guest_name') | list | first }}"
+  delegate_to: localhost
+
+- name: Perform vMotion of virtual machine to most free ESX host
+  community.vmware.vmware_vmotion:
+    validate_certs: false
+    vm_name: "{{ vmtomove }}"
+    destination_host: "{{ most_esx_host_name }}"
+  delegate_to: localhost

@@ -3,7 +3,6 @@
   community.vmware.vmware_cluster_info:
     validate_certs: false
     datacenter: Shadowman
-  delegate_to: localhost
   register: cluster_info
 
 - name: Determine ESX hosts in datacenter

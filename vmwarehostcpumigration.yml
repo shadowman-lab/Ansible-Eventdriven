@@ -1,0 +1,7 @@
+---
+- name: Migrate VMWare VM due to CPU Issue on ESX Host
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - shadowman_esx_vm_migration_cpu
