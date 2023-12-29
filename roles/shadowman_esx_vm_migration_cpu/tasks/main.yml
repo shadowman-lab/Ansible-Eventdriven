@@ -8,6 +8,7 @@
       Get-VMHost | select-object Name, @{l='CPUFreeMHz';e={("{0:N0}" -f $_.CPUtotalMHz - $_.CpuUsageMHz)}},
       @{l='MemoryFreeGB';e={($_.memorytotalGB - $_.memoryUsageGB).tostring("##.##")}}
   register: esxinfo
+  no_log: true
 
 - name: Determine ESX host with most CPU Free
   ansible.builtin.set_fact:
