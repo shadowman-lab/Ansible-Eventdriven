@@ -3,7 +3,7 @@
   ansible.windows.win_powershell:
     script: >
       Connect-VIServer -Server {{ lookup('ansible.builtin.env', 'VMWARE_HOST') }}
-        -Protocol https -User '{{ lookup('ansible.builtin.env', 'VMWARE_USERNAME') }}' -Password '{{ lookup('ansible.builtin.env', 'VMWARE_PASSWORD') }}'
+      -Protocol https -User '{{ lookup('ansible.builtin.env', 'VMWARE_USERNAME') }}' -Password '{{ lookup('ansible.builtin.env', 'VMWARE_PASSWORD') }}'
 
       Get-VMHost | select-object Name, @{l='CPUFreeMHz';e={("{0:N0}" -f $_.CPUtotalMHz - $_.CpuUsageMHz)}},
       @{l='MemoryFreeGB';e={($_.memorytotalGB - $_.memoryUsageGB).tostring("##.##")}}
