@@ -1,24 +1,24 @@
 ---
 - name: Get Login to VCenter Using PowerCLI and get ESX Host information
-  ansible.windows.win_powershell:
-    script: >
-      Connect-VIServer -Server {{ lookup('ansible.builtin.env', 'VMWARE_HOST') }}
-      -Protocol https -User '{{ lookup('ansible.builtin.env', 'VMWARE_USER') }}' -Password '{{ lookup('ansible.builtin.env', 'VMWARE_PASSWORD') }}'
+  ansible.builtin.shell: >
+    Connect-VIServer -Server {{ lookup('ansible.builtin.env', 'VMWARE_HOST') }}
+    -Protocol https -User '{{ lookup('ansible.builtin.env', 'VMWARE_USER') }}' -Password '{{ lookup('ansible.builtin.env', 'VMWARE_PASSWORD') }}' | Out-Null
 
-      Get-VMHost | select-object Name, @{l='CPUFreeMHz';e={("{0:N0}" -f $_.CPUtotalMHz - $_.CpuUsageMHz)}},
-      @{l='MemoryFreeGB';e={($_.memorytotalGB - $_.memoryUsageGB).tostring("##.##")}}
+    Get-VMHost | select-object Name, @{l='CPUFreeMHz';e={("{0:N0}" -f $_.CPUtotalMHz - $_.CpuUsageMHz)}},
+    @{l='MemoryFreeGB';e={($_.memorytotalGB - $_.memoryUsageGB).tostring("##.##")}} | ConvertTo-Json -Depth 10
+  args:
+    executable: /opt/microsoft/powershell/7/pwsh
   register: esxinfo
+  changed_when: '"CPUFreeMHz" in esxinfo.stdout'
   no_log: true
 
 - name: Determine ESX host with most CPU Free
   ansible.builtin.set_fact:
-    most_esx_host_info: "{{ esxinfo.output[1:] | sort(attribute='CPUFreeMHz') | last }}"
-  delegate_to: localhost
+    most_esx_host_info: "{{ esxinfo.stdout | from_json | sort(attribute='CPUFreeMHz') | last }}"
 
 - name: Determine ESX host Name with most CPU Free
   ansible.builtin.set_fact:
     most_esx_host_name: "{{ most_esx_host_info.Name }}"
-  delegate_to: localhost
 
 - name: Gather all VM Information
   community.vmware.vmware_vm_info:
@@ -32,16 +32,13 @@
     show_datacenter: false
     show_cluster: false
   register: vms
-  delegate_to: localhost
 
 - name: Get name of VM on overloaded esx host
   ansible.builtin.set_fact:
     vmtomove: "{{ vms.virtual_machines | selectattr('esxi_hostname', 'equalto', overloadedesx) | map(attribute='guest_name') | list | first }}"
-  delegate_to: localhost
 
 - name: Perform vMotion of virtual machine to most free ESX host
   community.vmware.vmware_vmotion:
     validate_certs: false
     vm_name: "{{ vmtomove }}"
     destination_host: "{{ most_esx_host_name }}"
-  delegate_to: localhost

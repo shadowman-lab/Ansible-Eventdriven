@@ -1,6 +1,6 @@
 ---
 - name: Migrate VMWare VM due to CPU Issue on ESX Host
-  hosts: all
+  hosts: localhost
   gather_facts: false
 
   roles:
