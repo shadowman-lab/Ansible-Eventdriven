@@ -86,13 +86,13 @@
     - name: Create an incident in ServiceNow on CVE Issue
       servicenow.itsm.incident:
         state: new
-        description: "Detected {{ cve_list | length }} CVEs with a severity >= 3 on host {{ insights_adv_target_host }}."
+        description: "{{ cve_list | length }} CVEs with a severity >= 3 on {{ insights_adv_target_host }}. Remediation in progress"
         short_description: "Detected {{ cve_list | length }} CVEs with a severity >= 3 on host {{ insights_adv_target_host }}."
         caller: admin
         urgency: "high"
         impact: "high"
         other:
-          u_vm_name: "insights_adv_target_host"
+          u_vm_name: "{{ insights_adv_target_host }}"
       register: new_incident
       delegate_to: localhost
 
