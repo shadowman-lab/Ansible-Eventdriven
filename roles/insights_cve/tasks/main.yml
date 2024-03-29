@@ -48,7 +48,7 @@
 - name: Create a list of security CVEs with severity >= 3
   ansible.builtin.set_fact:
     cve_list: "{{ cve_list | default([]) + item.cves }}"
-  loop: "{{ hosts_with_cve }}"
+  loop: "{{ hosts_with_cve | default([]) }}"
   delegate_to: localhost
   when:
     - item.severity | int >= 3
