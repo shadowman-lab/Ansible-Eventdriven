@@ -147,12 +147,12 @@
         attachments:
           - text: "! ALERT !"
             color: '#ff00dd'
-            title: "CVE None Issue"
+            title: "CVE Low Level Issue"
             fields:
               - title: Issue
-                value: "CVE None Issue"
+                value: "CVE Low Level Issue"
                 short: true
               - title: Details
-                value: "No important security CVEs detected on host {{ insights_adv_target_host }}."
+                value: "Low level security CVEs detected on host {{ insights_adv_target_host }}."
                 short: true
       delegate_to: localhost
