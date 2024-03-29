@@ -82,6 +82,20 @@
                 short: true
       delegate_to: localhost
 
+
+    - name: Create an incident in ServiceNow on CVE Issue
+      servicenow.itsm.incident:
+        state: new
+        description: "Detected {{ cve_list | length }} CVEs with a severity >= 3 on host {{ insights_adv_target_host }}."
+        short_description: "Detected {{ cve_list | length }} CVEs with a severity >= 3 on host {{ insights_adv_target_host }}."
+        caller: admin
+        urgency: "high"
+        impact: "high"
+        other:
+          u_vm_name: "insights_adv_target_host"
+      register: new_incident
+      delegate_to: localhost
+
     - name: Generate playbooks in Insights to remediate vulnerabilities
       ansible.builtin.uri:
         url: "{{ insights_api_url }}/remediations/v1/remediations"
@@ -114,6 +128,14 @@
       loop: "{{ cve_list }}"
       loop_control:
         index_var: my_idx
+
+    - name: Close the incident in ServiceNow
+      servicenow.itsm.incident:
+        state: closed
+        number: "{{ new_incident.record.number }}"
+        close_code: Solved (Permanently)
+        close_notes: "CVEs have been resolved"
+      delegate_to: localhost
 
 - name: If no CVE_list
   when: cve_list is not defined
