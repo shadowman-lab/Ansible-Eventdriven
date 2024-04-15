@@ -3,3 +3,10 @@
   ansible.builtin.service:
     name: "{{ nodeexporter_service_name }}"
     state: "{{ prometheus_state }}"
+  when: os is match("rhel.*") or os == "Red Hat BYOL Linux"
+
+- name: Change Windows Exporter State
+  ansible.windows.win_service:
+    name: "{{ windows_service_name }}"
+    state: "{{ prometheus_state }}"
+  when: os is match("windows.*") or os is match("2016.*") or os == "Windows"

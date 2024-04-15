@@ -1,3 +1,4 @@
 ---
 nodeexporter_service_name: nodeexporter_{{ inventory_hostname_short }}
 prometheus_state: started
+windows_service_name: Windows Exporter
