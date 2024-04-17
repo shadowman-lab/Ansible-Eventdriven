@@ -18,11 +18,11 @@
     register: result
     delegate_to: localhost
 
-  - name: Increase current virtual CPU cores
+  - name: Increase current virtual CPU Sockets
     redhat.rhv.ovirt_vm:
       auth: "{{ ovirt_auth }}"
       name: "{{ inventory_hostname }}"
-      cpu_cores: "{{ result.ovirt_vms[0].cpu.topology.cores | int + 5 }}"
+      cpu_sockets: "{{ result.ovirt_vms[0].cpu.topology.sockets | int + 5 }}"
     delegate_to: localhost
 
   always:
