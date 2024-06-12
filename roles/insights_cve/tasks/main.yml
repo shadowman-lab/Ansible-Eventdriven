@@ -62,7 +62,7 @@
   block:
     - name: Print out the total number of security CVEs with severity >= 3 for host "{{ insights_adv_target_host }}"
       ansible.builtin.debug:
-        msg: "Detected {{ cve_list | length }} security CVEs with severity >= 3 for host {{ insights_adv_target_host }}"
+        msg: "Detected {{ cve_list | unique | length }} security CVEs with severity >= 3 for host {{ insights_adv_target_host }}"
       delegate_to: localhost
 
     - name: Send notification message via Mattermost on CVE Issue
@@ -78,7 +78,7 @@
                 value: "CVE Issue Detected"
                 short: true
               - title: Details
-                value: "Detected {{ cve_list | length }} CVEs with a severity >= 3 on host {{ insights_adv_target_host }}."
+                value: "Detected {{ cve_list | unique | length }} CVEs with a severity >= 3 on host {{ insights_adv_target_host }}."
                 short: true
       delegate_to: localhost
 
@@ -86,8 +86,8 @@
     - name: Create an incident in ServiceNow on CVE Issue
       servicenow.itsm.incident:
         state: new
-        description: "{{ cve_list | length }} CVEs with a severity >= 3 on {{ insights_adv_target_host }}. Remediation in progress"
-        short_description: "Detected {{ cve_list | length }} CVEs with a severity >= 3 on host {{ insights_adv_target_host }}."
+        description: "{{ cve_list | unique | length }} CVEs with a severity >= 3 on {{ insights_adv_target_host }}. Remediation in progress"
+        short_description: "Detected {{ cve_list | unique | length }} CVEs with a severity >= 3 on host {{ insights_adv_target_host }}."
         caller: admin
         urgency: "high"
         impact: "high"
@@ -113,7 +113,7 @@
         body_format: json
         body: "{{ lookup('ansible.builtin.template', 'templates/pb_generator_body.j2') }}"
       register: pbs_per_host
-      loop: "{{ cve_list }}"
+      loop: "{{ cve_list | unique }}"
       delegate_to: localhost
 
     - name: Launch a project update from Red Hat Insights
@@ -125,7 +125,7 @@
 
     - name: Perform remediation tasks using AAP
       ansible.builtin.include_tasks: remediation.yml
-      loop: "{{ cve_list }}"
+      loop: "{{ cve_list | unique }}"
       loop_control:
         index_var: my_idx
 
