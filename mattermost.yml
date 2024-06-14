@@ -4,7 +4,7 @@
   gather_facts: false
 
   vars:
-    alert_details_value: "{{ details }}{{ vm_name | default('')}}"
+    alert_details_value: "{{ snow_incident_link | default('')}}{{ details }}{{ vm_name | default('')}}"
 
   roles:
     - shadowman_mattermost
