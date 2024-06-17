@@ -1,0 +1,6 @@
+---
+- name: Start Windows Firewall
+  ansible.windows.win_service:
+    name: MpsSvc
+    state: started
+  when: event_id == "5025"

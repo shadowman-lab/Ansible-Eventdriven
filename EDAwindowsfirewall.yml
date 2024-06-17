@@ -1,0 +1,7 @@
+---
+- name: Start Windows Firewall
+  hosts: "{{ vm_name | default('all')}}"
+  gather_facts: false
+
+  roles:
+    - shadowman_win_firewall
