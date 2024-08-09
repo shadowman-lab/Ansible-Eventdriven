@@ -18,6 +18,10 @@
       register: result
       delegate_to: localhost
 
+    - name: check my math
+      debug:
+        var: (result.ovirt_vms[0].cpu.topology.sockets | int) - dec_cores
+
     - name: Decrease current virtual CPU sockets
       redhat.rhv.ovirt_vm:
         auth: "{{ ovirt_auth }}"
