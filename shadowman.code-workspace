@@ -6,5 +6,8 @@
 		{
 			"path": "../Ansible-Website"
 		}
-	]
+	],
+	"settings": {
+		"ansible.python.interpreterPath": "/usr/local/bin/python3.12"
+	}
 }
