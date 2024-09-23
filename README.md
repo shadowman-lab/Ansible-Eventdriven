@@ -8,4 +8,12 @@ Increasing/Decreasing CPU cores
 Increasing/Decreasing Memory
 Starting Node Exporter (Prometheus)
 
+Automated Response to Red Hat Insights CVEs
+
+ServiceNow Ticket Creation and chat notification (Mattermost)
+
+VMWare VM Host migration to ESX host
+
+Automated response using Systemd for local user creation or sudoers file changes
+
 Can use any monitoring/alerting service into Ansible Tower API
