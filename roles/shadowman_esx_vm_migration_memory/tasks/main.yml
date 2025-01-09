@@ -2,7 +2,7 @@
 - name: Gather cluster info from given datacenter
   community.vmware.vmware_cluster_info:
     validate_certs: false
-    datacenter: Shadowman
+    datacenter: Shadowman-DC
   register: cluster_info
 
 - name: Determine ESX hosts in datacenter
