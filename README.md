@@ -1,5 +1,5 @@
 # Ansible-Eventdriven
-[![Contribute](https://img.shields.io/badge/OpenShift-Dev%20Spaces-525C86?logo=redhatopenshift&labelColor=EE0000)](https://devspaces.apps.hypershift.shadowman.dev/#https://github.com/shadowman-lab/Ansible-Eventdriven)
+[![Contribute](https://img.shields.io/badge/OpenShift-Dev%20Spaces-525C86?logo=redhatopenshift&labelColor=EE0000)](https://devspaces.apps.ocp.shadowman.dev/#https://github.com/shadowman-lab/Ansible-Eventdriven)
 
 Code to provide event driven automation
 
