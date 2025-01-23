@@ -14,12 +14,20 @@
   register: vm_full_info
   delegate_to: localhost
 
+- name: Retrieve the CPU information from the VM
+  vmware.vmware_rest.vcenter_vm_hardware_cpu_info:
+    vm: '{{ vm_full_info.id }}'
+    vcenter_validate_certs: false
+  register: vm_cpu
+  delegate_to: localhost
+
 - name: Turn off VM
   vmware.vmware_rest.vcenter_vm_power:
     state: stop
     vm: '{{ vm_info.value[0].vm }}'
     vcenter_validate_certs: false
   delegate_to: localhost
+  when: vm_cpu.value.count != cpu_cores
 
 - name: Restore cores to the VM
   vmware.vmware_rest.vcenter_vm_hardware_cpu:
@@ -27,6 +35,7 @@
     count: '{{ cpu_cores }}'
     vcenter_validate_certs: false
   delegate_to: localhost
+  when: vm_cpu.value.count != cpu_cores
 
 - name: Turn on VM
   vmware.vmware_rest.vcenter_vm_power:
@@ -34,3 +43,4 @@
     vm: '{{ vm_info.value[0].vm }}'
     vcenter_validate_certs: false
   delegate_to: localhost
+  when: vm_cpu.value.count != cpu_cores
