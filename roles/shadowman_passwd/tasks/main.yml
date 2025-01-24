@@ -4,7 +4,7 @@
     src: /tmp/home/userfiles/{{ item }}
     dest: /tmp/
     flat: true
-  delegate_to: aapcontroller1.shadowman.dev
+  delegate_to: tower1.shadowman.dev
   loop:
     - passwd
     - shadow
