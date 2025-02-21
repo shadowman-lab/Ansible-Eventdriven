@@ -1,6 +1,7 @@
 ---
 - name: Break HTTPD
   hosts: "{{ host_to_break }}"
+  gather_facts: false
 
   roles:
     - httpd_break
