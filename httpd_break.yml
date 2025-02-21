@@ -1,0 +1,6 @@
+---
+- name: Break HTTPD
+  hosts: "{{ host_to_break }}"
+
+  roles:
+    - httpd_break

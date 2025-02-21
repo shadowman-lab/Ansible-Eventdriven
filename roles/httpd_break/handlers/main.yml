@@ -1,0 +1,6 @@
+---
+- name: restart apache
+  ansible.builtin.service:
+    name: httpd
+    state: restarted
+  ignore_errors: true

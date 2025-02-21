@@ -1,0 +1,17 @@
+---
+- name: Add InvalidDirectiveHere
+  ansible.builtin.lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    insertafter: '^ServerRoot'
+    line: 'InvalidDirectiveHere'
+    state: present
+  notify:
+    - restart apache
+
+- name: Maintain httpd.conf
+  ansible.builtin.lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: '^InvalidDirectiveHere$'  # Matches the line exactly
+    state: absent
+  notify:
+    - restart apache
