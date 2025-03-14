@@ -42,14 +42,14 @@
   ansible.builtin.set_stats:
     data:
       sn_urgency: medium
-      sn_impact: high
+      sn_impact: medium
       comment: "CPU increased, manual log review required"
   when: vm_cpu.value.count | int < cpu_core_max_result.records[0].u_cpu_core_max | int
 
 - name: Pass Updates if cores at limit
   ansible.builtin.set_stats:
     data:
-      sn_urgency: medium
+      sn_urgency: high
       sn_impact: high
       comment: "CPU NOT increased, full manual intervention required"
   when: vm_cpu.value.count | int >= cpu_core_max_result.records[0].u_cpu_core_max | int
