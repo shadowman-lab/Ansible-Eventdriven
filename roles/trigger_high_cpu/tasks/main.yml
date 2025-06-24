@@ -1,0 +1,20 @@
+---
+- name: Trigger high CPU using a loop for total number of vcpus
+  ansible.builtin.shell: yes > /dev/null
+  loop: "{{ range(0, ansible_facts['processor_vcpus'], 1) | list }}"
+  register: async_results
+  changed_when: false
+  async: 300
+  poll: 0
+
+- name: Wait 300 total seconds for the CPU task to complete
+  ansible.builtin.async_status:
+    jid: "{{ async_result_item.ansible_job_id }}"
+  loop: "{{ async_results.results }}"
+  loop_control:
+    loop_var: "async_result_item"
+  register: async_poll_results
+  failed_when: false
+  until: async_poll_results.finished
+  retries: 30
+  delay: 10

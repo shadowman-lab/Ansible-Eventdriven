@@ -1,0 +1,6 @@
+---
+- name: Trigger High CPU for 300 seconds
+  hosts: "{{ high_cpu_host }}"
+
+  roles:
+    - trigger_high_cpu
