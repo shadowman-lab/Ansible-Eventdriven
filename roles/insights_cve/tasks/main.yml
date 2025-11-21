@@ -18,15 +18,28 @@
 #          - "advisory_type:  {{ item.advisory_type }}"
 #      loop: "{{ hosts_with_adv }}"
 
+- name: Get Token from Service Account
+  ansible.builtin.uri:
+    url: "{{ sso_endpoint }}"
+    method: POST
+    body:
+      grant_type: client_credentials
+      client_id: "{{ insights_auth_user }}"
+      client_secret: "{{ insights_auth_password }}"
+      scope: openid api.iam.service_accounts
+    body_format: form-urlencoded
+    status_code: 200
+  register: token
+
 - name: Create a list of advisories
   no_log: true
   ansible.builtin.uri:
     url: "{{ insights_api_url }}/patch/v3/advisories/{{ item.advisory_name }}"
     method: GET
     return_content: true
-    user: "{{ insights_auth_user }}"
-    password: "{{ insights_auth_password }}"
-    force_basic_auth: true
+    headers:
+      Authorization: Bearer {{ token.json.access_token }}
+      Content-Type: application/json
     status_code: 200
   register: insights_cves
   loop: "{{ hosts_with_adv }}"
@@ -99,14 +112,12 @@
       ansible.builtin.uri:
         url: "{{ insights_api_url }}/remediations/v1/remediations"
         method: POST
-        user: "{{ insights_auth_user }}"
-        password: "{{ insights_auth_password }}"
         validate_certs: false
-        force_basic_auth: true
         status_code: 201
         return_content: true
         headers:
-          Content-Type: "application/json"
+          Authorization: Bearer {{ token.json.access_token }}
+          Content-Type: application/json
           accept: "text/vnd.yaml"
           Connection: "keep-alive"
         body_format: json
