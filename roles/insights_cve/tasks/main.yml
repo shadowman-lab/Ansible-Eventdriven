@@ -88,6 +88,7 @@
         impact: "high"
         other:
           u_vm_name: "{{ insights_adv_target_host }}"
+          cmdb_ci: "{{ insights_adv_target_host | default(omit) }}"
       register: new_incident
       delegate_to: localhost
 

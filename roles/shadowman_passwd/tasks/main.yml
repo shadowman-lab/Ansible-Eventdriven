@@ -98,6 +98,7 @@
       u_operating_system: "{{ os | default(omit) }}"
       u_ip_address: "{{ ip_addr | default(omit) }}"
       u_vm_name: "{{ inventory_hostname | default(omit) }}"
+      cmdb_ci: "{{ inventory_hostname | default(omit) }}"
   register: new_incident
   delegate_to: localhost
   when: counter|int >=4
