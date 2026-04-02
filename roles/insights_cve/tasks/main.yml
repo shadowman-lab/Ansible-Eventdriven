@@ -26,6 +26,7 @@
       grant_type: client_credentials
       client_id: "{{ insights_auth_user }}"
       client_secret: "{{ insights_auth_password }}"
+      scope: openid
     body_format: form-urlencoded
     status_code: 200
   register: token
