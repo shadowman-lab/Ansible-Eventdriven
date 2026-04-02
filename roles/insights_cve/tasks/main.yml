@@ -31,6 +31,14 @@
     status_code: 200
   register: token
 
+- name: Search for Advisory instead of direct hit
+  ansible.builtin.uri:
+    url: "https://console.redhat.com/api/patch/v3/advisories"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ token.json.access_token }}"
+  register: search_result
+
 - name: Create a list of advisories
   ansible.builtin.uri:
     url: "{{ insights_api_url }}/patch/v3/advisories/{{ item.advisory_name }}"
@@ -39,7 +47,6 @@
     headers:
       Authorization: Bearer {{ token.json.access_token }}
       Content-Type: application/json
-      Accept: "application/json"
     status_code: 200
   register: insights_cves
   loop: "{{ hosts_with_adv }}"
