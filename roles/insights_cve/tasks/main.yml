@@ -31,6 +31,14 @@
     status_code: 200
   register: token
 
+- name: Check Patch Systems list
+  ansible.builtin.uri:
+    url: "https://console.redhat.com/api//patch/v3/export/advisories"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ token.json.access_token }}"
+  register: patch_systems_check
+
 - name: Create a list of advisories
   ansible.builtin.uri:
     url: "{{ insights_api_url }}/patch/v3/advisories/{{ item.advisory_name | urlencode }}"
