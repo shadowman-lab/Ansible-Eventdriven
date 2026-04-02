@@ -26,7 +26,6 @@
       grant_type: client_credentials
       client_id: "{{ insights_auth_user }}"
       client_secret: "{{ insights_auth_password }}"
-      scope: openid api.iam.service_accounts
     body_format: form-urlencoded
     status_code: 200
   register: token
