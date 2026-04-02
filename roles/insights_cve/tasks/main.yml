@@ -33,7 +33,7 @@
 
 - name: Debug RBAC permissions
   ansible.builtin.uri:
-    url: "https://console.redhat.com/api/rbac/v1/access/?application=patch"
+    url: "https://console.redhat.com/api/rbac/v1/access/?application=inventory"
     method: GET
     headers:
       Authorization: "Bearer {{ token.json.access_token }}"
