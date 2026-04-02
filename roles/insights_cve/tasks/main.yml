@@ -32,7 +32,6 @@
   register: token
 
 - name: Create a list of advisories
-  no_log: true
   ansible.builtin.uri:
     url: "{{ insights_api_url }}/patch/v3/advisories/{{ item.advisory_name }}"
     method: GET
