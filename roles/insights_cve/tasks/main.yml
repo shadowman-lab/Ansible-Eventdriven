@@ -31,13 +31,24 @@
     status_code: 200
   register: token
 
-- name: Debug RBAC permissions
+- name: Check Service Entitlements
   ansible.builtin.uri:
-    url: "https://console.redhat.com/api/rbac/v1/access/?application=inventory"
+    url: "https://console.redhat.com/api/entitlements/v1/services"
     method: GET
     headers:
       Authorization: "Bearer {{ token.json.access_token }}"
-  register: rbac_check
+  register: entitlements_check
+
+- name: Show Entitlements
+  ansible.builtin.debug:
+    var: entitlements_check.json
+
+- name: Test generic advisories list
+  ansible.builtin.uri:
+    url: "https://console.redhat.com/api/patch/v3/advisories"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ token.json.access_token }}"
 
 - name: Create a list of advisories
   ansible.builtin.uri:
