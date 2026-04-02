@@ -26,7 +26,7 @@
       grant_type: client_credentials
       client_id: "{{ insights_auth_user }}"
       client_secret: "{{ insights_auth_password }}"
-      scope: openid api.iam.service_accounts
+      scope: openid
     body_format: form-urlencoded
     status_code: 200
   register: token
@@ -40,7 +40,6 @@
       Authorization: Bearer {{ token.json.access_token }}
       Content-Type: application/json
       Accept: "application/json"
-      x-rh-identity: "{{ { 'identity': { 'type': 'ServiceAccount', 'org_id': '13247185', 'auth_type': 'jwt' } } | to_json | b64encode }}"
     status_code: 200
   register: insights_cves
   loop: "{{ hosts_with_adv }}"
