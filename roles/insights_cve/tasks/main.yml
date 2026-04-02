@@ -33,7 +33,7 @@
 
 - name: Search for Advisory instead of direct hit
   ansible.builtin.uri:
-    url: "https://console.redhat.com/api/patch/v3/advisories"
+    url: "https://console.redhat.com/api/inventory/v1/hosts?limit=1"
     method: GET
     headers:
       Authorization: "Bearer {{ token.json.access_token }}"
