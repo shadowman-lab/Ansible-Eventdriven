@@ -41,7 +41,7 @@
 
 - name: Create a list of advisories
   ansible.builtin.uri:
-    url: "{{ insights_api_url }}/patch/v3/advisories/{{ item.advisory_name }}"
+    url: "{{ insights_api_url }}/patch/v3/advisories/{{ item.advisory_name | urlencode }}"
     method: GET
     return_content: true
     headers:
