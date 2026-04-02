@@ -26,31 +26,13 @@
       grant_type: client_credentials
       client_id: "{{ insights_auth_user }}"
       client_secret: "{{ insights_auth_password }}"
-      scope: openid
+      scope: openid api.iam.service_accounts api.console
     body_format: form-urlencoded
     status_code: 200
   register: token
 
-- name: Check Service Entitlements
-  ansible.builtin.uri:
-    url: "https://console.redhat.com/api/entitlements/v1/services"
-    method: GET
-    headers:
-      Authorization: "Bearer {{ token.json.access_token }}"
-  register: entitlements_check
-
-- name: Show Entitlements
-  ansible.builtin.debug:
-    var: entitlements_check.json
-
-- name: Test generic advisories list
-  ansible.builtin.uri:
-    url: "https://console.redhat.com/api/patch/v3/advisories"
-    method: GET
-    headers:
-      Authorization: "Bearer {{ token.json.access_token }}"
-
 - name: Create a list of advisories
+  no_log: true
   ansible.builtin.uri:
     url: "{{ insights_api_url }}/patch/v3/advisories/{{ item.advisory_name }}"
     method: GET
@@ -61,7 +43,6 @@
     status_code: 200
   register: insights_cves
   loop: "{{ hosts_with_adv }}"
-  no_log: true
   delegate_to: localhost
 
 - name: Create a list for each host with CVEs
