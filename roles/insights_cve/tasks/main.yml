@@ -31,6 +31,14 @@
     status_code: 200
   register: token
 
+- name: Debug RBAC permissions
+  ansible.builtin.uri:
+    url: "https://console.redhat.com/api/rbac/v1/access/?application=patch"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ token.json.access_token }}"
+  register: rbac_check
+
 - name: Create a list of advisories
   ansible.builtin.uri:
     url: "{{ insights_api_url }}/patch/v3/advisories/{{ item.advisory_name }}"
@@ -42,6 +50,7 @@
     status_code: 200
   register: insights_cves
   loop: "{{ hosts_with_adv }}"
+  no_log: true
   delegate_to: localhost
 
 - name: Create a list for each host with CVEs
