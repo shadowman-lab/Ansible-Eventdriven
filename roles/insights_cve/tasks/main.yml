@@ -31,13 +31,13 @@
     status_code: 200
   register: token
 
-- name: Search for Advisory instead of direct hit
+- name: Check Patch Systems list
   ansible.builtin.uri:
-    url: "https://console.redhat.com/api/inventory/v1/hosts?limit=1"
+    url: "https://console.redhat.com/api/patch/v3/systems"
     method: GET
     headers:
       Authorization: "Bearer {{ token.json.access_token }}"
-  register: search_result
+  register: patch_systems_check
 
 - name: Create a list of advisories
   ansible.builtin.uri:
