@@ -47,6 +47,16 @@
     headers:
       Authorization: Bearer {{ token.json.access_token }}
       Content-Type: application/json
+      x-rh-identity: "{{ {
+          'identity': {
+            'type': 'ServiceAccount',
+            'org_id': '13247185',
+            'auth_type': 'jwt',
+            'service_account': {
+              'client_id': '07f7acae-fac7-4892-81a4-ec9ace10350f'
+            }
+          }
+        } | to_json | b64encode }}"
     status_code: 200
   register: insights_cves
   loop: "{{ hosts_with_adv }}"
