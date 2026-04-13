@@ -56,7 +56,7 @@
                                     'description': item.json.data.attributes.description}] }}"
   loop: "{{ insights_cves.results }}"
   delegate_to: localhost
-  when: item.json.data.attributes.cves | length > 0
+  when: item.json.data.attributes.cves | default([]) | length > 0
 
 - name: Create a list of security CVEs with severity >= 3
   ansible.builtin.set_fact:
