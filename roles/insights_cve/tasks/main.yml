@@ -160,7 +160,7 @@
             title: "CVE Issue Resolved"
             fields:
               - title: Issue
-                value: "CVE Issue Resolved"
+                value: "CVE Issue Fully Resolved"
                 short: true
               - title: Details
                 value: "ServiceNow Incident: {{ lookup('env', 'SN_HOST') }}nav_to.do?uri=incident.do?sysparm_query=number={{ new_incident.record.number }} has been closed"

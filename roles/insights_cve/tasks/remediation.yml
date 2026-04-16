@@ -36,3 +36,11 @@
             value: "{{ item }} resolved on host {{ insights_adv_target_host }}."
             short: true
   delegate_to: localhost
+
+- name: Update the incident in ServiceNow of CVE resolved
+  servicenow.itsm.incident:
+    number: "{{ new_incident.record.number }}"
+    state: in_progress
+    other:
+      comments: "{{ item }} resolved"
+  delegate_to: localhost
