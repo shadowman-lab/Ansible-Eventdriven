@@ -1,0 +1,6 @@
+---
+- name: Delete Insights Remediations
+  hosts: localhost
+
+  roles:
+    - insights_delete_remediations

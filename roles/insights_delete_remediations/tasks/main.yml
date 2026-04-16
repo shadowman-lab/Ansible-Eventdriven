@@ -1,0 +1,39 @@
+- name: Get Token from Service Account
+  no_log: true
+  ansible.builtin.uri:
+    url: "{{ sso_endpoint }}"
+    method: POST
+    body:
+      grant_type: client_credentials
+      client_id: "{{ insights_auth_user }}"
+      client_secret: "{{ insights_auth_password }}"
+      scope: openid api.iam.service_accounts
+    body_format: form-urlencoded
+    status_code: 200
+  register: token
+
+- name: Create a list of Remediations
+  no_log: true
+  ansible.builtin.uri:
+    url: "{{ insights_api_url }}/remediations/v1/remediations/"
+    method: GET
+    return_content: true
+    headers:
+      Authorization: Bearer {{ token.json.access_token }}
+      Content-Type: application/json
+    status_code: 200
+  register: insights_remediations
+
+- name: Delete any remediations created by the specific service account
+  no_log: true
+  ansible.builtin.uri:
+    url: "{{ insights_api_url }}/remediations/v1/remediations/{{ item.id }}"
+    method: DELETE
+    return_content: true
+    headers:
+      Authorization: Bearer {{ token.json.access_token }}
+      Content-Type: application/json
+    status_code: 204
+  loop: "{{ insights_remediations.json.data | selectattr('created_by.username', 'equalto', 'service-account-' + insights_auth_user) | list }}"
+  loop_control:
+    label: "{{ item.name }}"
