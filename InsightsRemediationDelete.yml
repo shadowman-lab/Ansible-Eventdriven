@@ -1,6 +1,7 @@
 ---
 - name: Delete Insights Remediations
   hosts: localhost
+  gather_facts: false
 
   roles:
     - insights_delete_remediations
