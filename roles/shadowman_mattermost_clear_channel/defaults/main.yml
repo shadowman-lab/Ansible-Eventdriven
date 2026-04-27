@@ -1,0 +1,6 @@
+---
+mattermost_url: "https://cicd.shadowman.dev:8065"
+mattermost_team_name: "ansible"
+town_square_channel: "town-square"
+posts_per_page: 200
+validate_certs: true

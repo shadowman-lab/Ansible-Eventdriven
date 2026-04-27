@@ -1,0 +1,77 @@
+---
+- name: Get team by name if specified
+  ansible.builtin.uri:
+    url: "{{ mattermost_url }}/api/v4/teams/name/{{ mattermost_team_name }}"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ mattermost_api_key }}"
+    validate_certs: "{{ validate_certs }}"
+    status_code: 200
+  register: team_by_name
+  no_log: true
+  when: mattermost_team_name | length > 0
+
+- name: Set team ID from specified team name
+  ansible.builtin.set_fact:
+    team_id: "{{ team_by_name.json.id }}"
+    team_name: "{{ team_by_name.json.name }}"
+  when: mattermost_team_name | length > 0
+
+- name: Get Town Square channel
+  ansible.builtin.uri:
+    url: "{{ mattermost_url }}/api/v4/teams/{{ team_id }}/channels/name/{{ town_square_channel }}"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ mattermost_api_key }}"
+    validate_certs: "{{ validate_certs }}"
+    status_code: 200
+  register: channel_info
+  no_log: true
+
+- name: Display channel information
+  ansible.builtin.debug:
+    msg: "Found channel: {{ channel_info.json.display_name }} ({{ channel_info.json.id }})"
+
+- name: Get all posts from Town Square channel
+  ansible.builtin.uri:
+    url: "{{ mattermost_url }}/api/v4/channels/{{ channel_info.json.id }}/posts?per_page={{ posts_per_page }}&page=0"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ mattermost_api_key }}"
+    validate_certs: "{{ validate_certs }}"
+    status_code: 200
+  register: posts_response
+  no_log: true
+
+- name: Extract post IDs from response
+  ansible.builtin.set_fact:
+    post_ids: "{{ posts_response.json.order }}"
+
+- name: Display post count
+  ansible.builtin.debug:
+    msg: "Found {{ post_ids | length }} posts to delete"
+
+- name: Delete each post
+  ansible.builtin.uri:
+    url: "{{ mattermost_url }}/api/v4/posts/{{ item }}"
+    method: DELETE
+    headers:
+      Authorization: "Bearer {{ mattermost_api_key }}"
+    validate_certs: "{{ validate_certs }}"
+    status_code: 200
+  loop: "{{ post_ids }}"
+  loop_control:
+    label: "Deleting post {{ item }}"
+  register: delete_results
+  when: post_ids | length > 0
+  no_log: true
+
+- name: Summary
+  ansible.builtin.debug:
+    msg: "Successfully deleted {{ post_ids | length }} posts from Town Square channel"
+  when: post_ids | length > 0
+
+- name: No posts found
+  ansible.builtin.debug:
+    msg: "No posts found in Town Square channel"
+  when: post_ids | length == 0
