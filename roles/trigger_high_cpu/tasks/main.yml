@@ -15,6 +15,6 @@
     loop_var: "async_result_item"
   register: async_poll_results
   failed_when: false
-  until: async_poll_results.finished
+  until: async_poll_results.finished | bool
   retries: 30
   delay: 10
