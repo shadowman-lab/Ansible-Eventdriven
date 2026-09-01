@@ -1,0 +1,31 @@
+---
+- name: Perform remediation tasks using AAP
+  ansible.builtin.include_tasks: remediation.yml
+  loop: "{{ cve_list | unique }}"
+  loop_control:
+    index_var: my_idx
+
+- name: Close the incident in ServiceNow
+  servicenow.itsm.incident:
+    state: closed
+    number: "{{ new_incident.record.number }}"
+    close_code: Solved (Permanently)
+    close_notes: "CVEs have been resolved"
+  delegate_to: localhost
+
+- name: Update Mattermost about Ticket Closed
+  community.general.mattermost:
+    url: "{{ mattermost_url }}"
+    api_key: "{{ mattermost_api_key }}"
+    attachments:
+      - text: "! ALERT !"
+        color: '#ff00dd'
+        title: "CVE Issue Resolved"
+        fields:
+          - title: Issue
+            value: "CVE Issue Fully Resolved"
+            short: true
+          - title: Details
+            value: "ServiceNow Incident: {{ lookup('env', 'SN_HOST') }}nav_to.do?uri=incident.do?sysparm_query=number={{ new_incident.record.number }} has been closed"
+            short: true
+  delegate_to: localhost

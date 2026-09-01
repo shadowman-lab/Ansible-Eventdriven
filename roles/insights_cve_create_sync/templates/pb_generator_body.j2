@@ -1,0 +1,14 @@
+{
+  "name": "{{ item }}",
+  "auto_reboot": true,
+  "add": {
+    "issues": [
+      {
+        "id": "vulnerabilities:{{ item }}",
+        "systems": [
+          "{{ insights_adv_host_data.inventory_id }}"
+        ]
+      }
+    ]
+  }
+}

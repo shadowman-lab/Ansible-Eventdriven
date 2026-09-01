@@ -1,0 +1,67 @@
+- name: Print out the total number of security CVEs with severity >= 3 for host "{{ insights_adv_target_host }}"
+  ansible.builtin.debug:
+    msg: "Detected {{ cve_list | unique | length }} security CVEs with severity >= 3 for host {{ insights_adv_target_host }}"
+  delegate_to: localhost
+
+- name: Create an incident in ServiceNow on CVE Issue
+  servicenow.itsm.incident:
+    state: new
+    description: "{{ cve_list | unique | length }} CVEs with a severity >= 3 on {{ insights_adv_target_host }}. Remediation in progress by Ansible"
+    short_description: "Detected {{ cve_list | unique | length }} CVEs with a severity >= 3 on host {{ insights_adv_target_host }}."
+    caller: admin
+    urgency: "high"
+    impact: "high"
+    other:
+      u_vm_name: "{{ insights_adv_target_host }}"
+      cmdb_ci: "{{ insights_adv_target_host | default(omit) }}"
+  register: new_incident
+  delegate_to: localhost
+
+- name: Send notification message via Mattermost on CVE Issue
+  community.general.mattermost:
+    url: "{{ mattermost_url }}"
+    api_key: "{{ mattermost_api_key }}"
+    attachments:
+      - text: "! ALERT !"
+        color: '#ff00dd'
+        title: "CVE Issue"
+        fields:
+          - title: Issue
+            value: "CVE Issue Detected"
+            short: true
+          - title: Details
+            value: "Detected {{ cve_list | unique | length }} CVEs with a severity >= 3 on host {{ insights_adv_target_host }}. ServiceNow Incident: {{ lookup('env', 'SN_HOST') }}nav_to.do?uri=incident.do?sysparm_query=number={{ new_incident.record.number }} has been created"
+            short: true
+  delegate_to: localhost
+
+- name: Generate playbooks in Insights to remediate vulnerabilities
+  ansible.builtin.uri:
+    url: "{{ insights_api_url }}/remediations/v1/remediations"
+    method: POST
+    validate_certs: false
+    status_code: 201
+    return_content: true
+    headers:
+      Authorization: Bearer {{ token.json.access_token }}
+      Content-Type: application/json
+      accept: "text/vnd.yaml"
+      Connection: "keep-alive"
+    body_format: json
+    body: "{{ lookup('ansible.builtin.template', 'templates/pb_generator_body.j2') }}"
+  register: pbs_per_host
+  loop: "{{ cve_list | unique }}"
+  delegate_to: localhost
+
+- name: Launch a project update from Red Hat Insights
+  ansible.controller.project_update:
+    project: "Red Hat Insights"
+    timeout: 60
+    validate_certs: false
+  delegate_to: localhost
+
+- name: Pass along pbs per host and incident data to the next role
+  ansible.builtin.set_stats:
+    data:
+      pbs_per_host: "{{ pbs_per_host }}"
+      new_incident: "{{ new_incident }}"
+  delegate_to: localhost
