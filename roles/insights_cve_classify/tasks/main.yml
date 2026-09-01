@@ -66,6 +66,7 @@
   ansible.builtin.set_stats:
     data:
       cvelist: "{{ cve_list | unique }}"
+      hosts_with_cve: "{{ hosts_with_cve }}"
   delegate_to: localhost
   when:
     - cve_list is defined
