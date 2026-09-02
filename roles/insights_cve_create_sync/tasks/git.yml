@@ -1,0 +1,22 @@
+---
+- name: Get playbook from Insights API
+  ansible.builtin.uri:
+    url: "https://console.redhat.com/api/remediations/v1/remediations/{{ pbs_per_host.results[my_idx | int].json.id }}/playbook"
+    method: GET
+    validate_certs: false
+    status_code: 200
+    return_content: true
+    headers:
+      Authorization: Bearer {{ token.json.access_token }}
+      Content-Type: application/json
+  register: playbook_content
+  delegate_to: localhost
+
+- name: Copy playbook content
+  ansible.builtin.copy:
+    content: "{{ playbook_content.content }}"
+    dest: "/tmp/home/lightspeed/{{ inventory_hostname }}-{{ item | lower }}.yml"
+    owner: root
+    group: root
+    mode: '0644'
+  delegate_to: localhost
