@@ -1,6 +1,7 @@
 ---
 - name: EDA Automation for CVE Remediation
   hosts: "{{ insights_adv_target_host }}"
+  gather_facts: false
 
   roles:
     - insights_cve_remediate
