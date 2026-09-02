@@ -1,0 +1,7 @@
+---
+- name: EDA Automation to Automation Orchestrator
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - insights_to_ao

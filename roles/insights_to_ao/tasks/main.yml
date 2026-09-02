@@ -1,0 +1,34 @@
+---
+- name: Obtain OAuth token
+  ansible.builtin.uri:
+    url: "{{ webhook_base_url }}/api/v1/auth/token"
+    method: POST
+    body_format: form-urlencoded
+    validate_certs: false
+    body:
+      grant_type: client_credentials
+      client_id: "{{ webhook_client_id }}"
+      client_secret: "{{ webhook_client_secret }}"
+    status_code: 200
+  register: token_response
+
+- name: Post event payload to Event-Driven Ansible trigger endpoint
+  ansible.builtin.uri:
+    url: "{{ webhook_base_url }}/api/v1/webhooks/eda/{{ webhook_path }}"
+    method: POST
+    body_format: json
+    validate_certs: false
+    headers:
+      Authorization: "Bearer {{ token_response.json.access_token }}"
+      Content-Type: application/json
+    body:
+      insights_adv_data: "{{ insights_adv_data }}"
+      insights_adv_host_data: "{{ insights_adv_host_data }}"
+      insights_adv_target_host: "{{ insights_adv_target_host }}"
+      insights_adv_type: "{{ insights_adv_type }}"
+    status_code: 202
+  register: webhook_response
+
+- name: Display execution ID
+  ansible.builtin.debug:
+    msg: "Workflow execution started: {{ webhook_response.json.execution_id }}"
