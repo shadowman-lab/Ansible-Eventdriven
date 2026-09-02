@@ -1,3 +1,4 @@
 ---
 mattermost_url: "https://cicd.shadowman.dev:8065"
 insights_api_url: "https://console.redhat.com/api"
+sso_endpoint: https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token

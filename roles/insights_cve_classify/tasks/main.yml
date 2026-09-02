@@ -67,7 +67,6 @@
     data:
       cve_list: "{{ cve_list | unique }}"
       hosts_with_cve: "{{ hosts_with_cve }}"
-      token: "{{ token }}"
   delegate_to: localhost
     - cve_list is defined
     - hosts_with_cve is defined

@@ -34,6 +34,21 @@
             short: true
   delegate_to: localhost
 
+- name: Get Token from Service Account
+  no_log: true
+  ansible.builtin.uri:
+    url: "{{ sso_endpoint }}"
+    method: POST
+    body:
+      grant_type: client_credentials
+      client_id: "{{ insights_auth_user }}"
+      client_secret: "{{ insights_auth_password }}"
+      scope: openid api.iam.service_accounts
+    body_format: form-urlencoded
+    status_code: 200
+  register: token
+  delegate_to: localhost
+
 - name: Generate playbooks in Insights to remediate vulnerabilities
   ansible.builtin.uri:
     url: "{{ insights_api_url }}/remediations/v1/remediations"
