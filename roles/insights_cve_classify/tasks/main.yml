@@ -54,7 +54,7 @@
   loop: "{{ hosts_with_cve | default([]) }}"
   delegate_to: localhost
   when:
-    - item.impact_id | int >= 6
+    - item.impact_id | int >= 5
     - hosts_with_cve is defined
 
 - name: Pass along all CVEs for host "{{ insights_adv_target_host }}"
