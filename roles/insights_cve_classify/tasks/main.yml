@@ -65,7 +65,7 @@
 - name: Pass along all CVEs with severity >= 3 for host "{{ insights_adv_target_host }}"
   ansible.builtin.set_stats:
     data:
-      cvelist: "{{ cve_list | unique }}"
+      cve_list: "{{ cve_list | unique }}"
       hosts_with_cve: "{{ hosts_with_cve }}"
   delegate_to: localhost
     - cve_list is defined
