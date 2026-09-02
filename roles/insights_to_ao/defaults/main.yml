@@ -1,2 +1,2 @@
 ---
-webhook_base_url: "https://automation-orchestrator-automation-orchestrator.apps.ocp.shadowman.dev"
+ao_webhook_base_url: "https://automation-orchestrator-automation-orchestrator.apps.ocp.shadowman.dev"
