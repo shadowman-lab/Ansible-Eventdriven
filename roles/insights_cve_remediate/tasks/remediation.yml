@@ -1,13 +1,13 @@
 ---
 - name: Update Remediation Job Template
   ansible.controller.job_template:
-    name: "Insights Remediation"
+    name: "Lightspeed Remediation"
     job_type: "run"
     credentials:
       - "Ansible Linux Service Account"
     inventory: "Shadowman Production"
-    project: "Red Hat Insights"
-    playbook: "{{ item | lower }}-{{ pbs_per_host.results[my_idx | int].json.id }}.yml"
+    project: "SSP Lightspeed Remediation"
+    playbook: "{{ inventory_hostname }}-{{ item | lower }}.yml"
     become_enabled: true
     state: present
     validate_certs: false
@@ -15,7 +15,7 @@
 
 - name: Launch Remediation Job Template
   ansible.controller.job_launch:
-    name: "Insights Remediation"
+    name: "Lightspeed Remediation"
     wait: true
     validate_certs: false
   delegate_to: localhost

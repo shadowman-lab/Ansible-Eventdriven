@@ -12,7 +12,7 @@
   register: playbook_content
   delegate_to: localhost
 
-- name: Copy playbook content
+- name: Write playbook content to file for upload to git
   ansible.builtin.copy:
     content: "{{ playbook_content.content }}"
     dest: "/tmp/home/lightspeed/{{ inventory_hostname }}-{{ item | lower }}.yml"
