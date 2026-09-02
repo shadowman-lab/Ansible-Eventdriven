@@ -1,13 +1,13 @@
-- name: Print out the total number of security CVEs with severity >= 3 for host "{{ insights_adv_target_host }}"
+- name: Print out the total number of security CVEs with impact >= 5 for host "{{ insights_adv_target_host }}"
   ansible.builtin.debug:
-    msg: "Detected {{ cve_list | unique | length }} security CVEs with severity >= 3 for host {{ insights_adv_target_host }}"
+    msg: "Detected {{ cve_list | unique | length }} security CVEs with impact >= 5 for host {{ insights_adv_target_host }}"
   delegate_to: localhost
 
 - name: Create an incident in ServiceNow on CVE Issue
   servicenow.itsm.incident:
     state: new
-    description: "{{ cve_list | unique | length }} CVEs with a severity >= 3 on {{ insights_adv_target_host }}. Remediation in progress by Ansible"
-    short_description: "Detected {{ cve_list | unique | length }} CVEs with a severity >= 3 on host {{ insights_adv_target_host }}."
+    description: "{{ cve_list | unique | length }} CVEs with impact >= 5 on {{ insights_adv_target_host }}. Remediation in progress by Ansible"
+    short_description: "Detected {{ cve_list | unique | length }} CVEs with impact >= 5 on host {{ insights_adv_target_host }}."
     caller: admin
     urgency: "high"
     impact: "high"
@@ -30,7 +30,7 @@
             value: "CVE Issue Detected"
             short: true
           - title: Details
-            value: "Detected {{ cve_list | unique | length }} CVEs with a severity >= 3 on host {{ insights_adv_target_host }}. ServiceNow Incident: {{ lookup('env', 'SN_HOST') }}nav_to.do?uri=incident.do?sysparm_query=number={{ new_incident.record.number }} has been created"
+            value: "Detected {{ cve_list | unique | length }} CVEs with impact >= 5 on host {{ insights_adv_target_host }}. ServiceNow Incident: {{ lookup('env', 'SN_HOST') }}nav_to.do?uri=incident.do?sysparm_query=number={{ new_incident.record.number }} has been created"
             short: true
   delegate_to: localhost
 
