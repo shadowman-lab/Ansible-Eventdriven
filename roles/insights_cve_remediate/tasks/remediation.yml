@@ -1,7 +1,7 @@
 ---
 - name: Update Remediation Job Template
   ansible.controller.job_template:
-    name: "Lightspeed Remediation"
+    name: "Lightspeed Remediation {{ insights_adv_target_host }}"
     job_type: "run"
     credentials:
       - "Ansible Linux Service Account"
@@ -15,7 +15,7 @@
 
 - name: Launch Remediation Job Template
   ansible.controller.job_launch:
-    name: "Lightspeed Remediation"
+    name: "Lightspeed Remediation {{ insights_adv_target_host }}"
     wait: true
     validate_certs: false
   delegate_to: localhost
