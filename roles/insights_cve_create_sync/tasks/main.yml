@@ -91,7 +91,7 @@
   loop_control:
     index_var: my_idx
 
-- name: Update git repo with backup
+- name: Update git repo with playbooks
   ansible.builtin.shell: git add -A && git commit -m "Synching new playbooks" && git config --global core.sshCommand 'ssh -i {{ cert_key_file }} -F /dev/null'
     && git push
   args:
