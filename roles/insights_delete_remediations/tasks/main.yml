@@ -14,7 +14,7 @@
 
 - name: Create a list of Remediations
   ansible.builtin.uri:
-    url: "{{ insights_api_url }}/remediations/v1/remediations/"
+    url: "{{ insights_api_url }}/remediations/v1/remediations/?limit=200"
     method: GET
     return_content: true
     headers:
