@@ -15,7 +15,7 @@
 
 - name: Write playbook content to file for upload to git
   ansible.builtin.copy:
-    content: "{{ playbook_content.content | default('---') }}"
+    content: "{{ playbook_content.content | default('---') }}\n      when: run_insights_each_playbook | bool"
     dest: "/tmp/home/lightspeed/{{ insights_adv_target_host }}/{{ item | lower }}.yml"
     owner: root
     group: root
