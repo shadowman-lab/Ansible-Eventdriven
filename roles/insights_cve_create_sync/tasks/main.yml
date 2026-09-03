@@ -54,7 +54,7 @@
     url: "{{ insights_api_url }}/remediations/v1/remediations"
     method: POST
     validate_certs: false
-    status_code: 201
+    status_code: [201, 400]
     return_content: true
     headers:
       Authorization: Bearer {{ token.json.access_token }}
@@ -74,6 +74,15 @@
     version: main
     accept_newhostkey: true
     key_file: "{{ cert_key_file }}"
+  delegate_to: localhost
+
+- name: Create a new folder for the host in the Git repo
+  ansible.builtin.file:
+    name: "/tmp/home/lightspeed/{{ insights_adv_target_host }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0644'
   delegate_to: localhost
 
 - name: Pull playbooks into Git Repo
@@ -104,9 +113,8 @@
     validate_certs: false
   delegate_to: localhost
 
-- name: Pass along pbs per host and incident data to the next role
+- name: Pass along incident data to the next role
   ansible.builtin.set_stats:
     data:
-      pbs_per_host: "{{ pbs_per_host }}"
       new_incident: "{{ new_incident }}"
   delegate_to: localhost

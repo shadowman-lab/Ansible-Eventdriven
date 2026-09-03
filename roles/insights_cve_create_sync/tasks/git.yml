@@ -15,7 +15,7 @@
 - name: Write playbook content to file for upload to git
   ansible.builtin.copy:
     content: "{{ playbook_content.content | default('---') }}"
-    dest: "/tmp/home/lightspeed/{{ inventory_hostname }}-{{ item | lower }}.yml"
+    dest: "/tmp/home/lightspeed/{{ insights_adv_target_host }}/{{ item | lower }}.yml"
     owner: root
     group: root
     mode: '0644'

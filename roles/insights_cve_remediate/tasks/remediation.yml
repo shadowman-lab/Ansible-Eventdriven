@@ -7,7 +7,7 @@
       - "Ansible Linux Service Account"
     inventory: "Shadowman Production"
     project: "SSP Lightspeed Remediation"
-    playbook: "{{ inventory_hostname }}-{{ item | lower }}.yml"
+    playbook: "{{ insights_adv_target_host }}/{{ item | lower }}.yml"
     become_enabled: true
     state: present
     validate_certs: false
