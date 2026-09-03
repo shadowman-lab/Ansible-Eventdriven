@@ -11,6 +11,7 @@
       Content-Type: application/json
   register: playbook_content
   delegate_to: localhost
+  when: pbs_per_host.results[my_idx | int].json.id is defined  # this is for when the remediation previously existed
 
 - name: Write playbook content to file for upload to git
   ansible.builtin.copy:
@@ -20,3 +21,4 @@
     group: root
     mode: '0644'
   delegate_to: localhost
+  when: pbs_per_host.results[my_idx | int].json.id is defined  # this is for when the remediation previously existed
