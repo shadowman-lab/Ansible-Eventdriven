@@ -8,6 +8,8 @@
     inventory: "Shadowman Production"
     project: "SSP Lightspeed Remediation"
     playbook: "{{ insights_adv_target_host }}/{{ item | lower }}.yml"
+    extra_vars:
+      run_insights_each_playbook: "{{ run_insights_each_playbook | default('false') }}"
     become_enabled: true
     state: present
     validate_certs: false

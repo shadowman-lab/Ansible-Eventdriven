@@ -5,6 +5,11 @@
   loop_control:
     index_var: my_idx
 
+- name: Run Insights scan
+  ansible.builtin.command: insights-client
+  changed_when: false
+  when: not run_insights_each_playbook | default('false') | bool
+
 - name: Close the incident in ServiceNow
   servicenow.itsm.incident:
     state: closed
