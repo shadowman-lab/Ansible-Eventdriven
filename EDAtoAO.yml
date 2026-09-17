@@ -4,4 +4,4 @@
   gather_facts: false
 
   roles:
-    - insights_to_ao
+    - eda_to_ao
