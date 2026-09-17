@@ -21,11 +21,17 @@
     headers:
       Authorization: "Bearer {{ token_response.json.access_token }}"
       Content-Type: application/json
-    body:
-      insights_adv_data: "{{ insights_adv_data }}"
-      insights_adv_host_data: "{{ insights_adv_host_data }}"
-      insights_adv_target_host: "{{ insights_adv_target_host }}"
-      insights_adv_type: "{{ insights_adv_type }}"
+    body: >-
+      {{
+        {
+          'insights_adv_data': insights_adv_data | default(None),
+          'insights_adv_host_data': insights_adv_host_data | default(None),
+          'insights_adv_target_host': insights_adv_target_host | default(None),
+          'insights_adv_type': insights_adv_type | default(None),
+          'vm_name': vm_name | default(None),
+          'service_issue': service_issue | default(None),
+        } | dict2items | rejectattr('value', 'none') | items2dict
+      }}
     status_code: 202
   register: webhook_response
 
