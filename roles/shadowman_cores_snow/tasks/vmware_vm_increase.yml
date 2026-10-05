@@ -1,24 +1,17 @@
 ---
 - name: Get VM info
-  vmware.vmware_rest.vcenter_vm_info:
-    filter_names:
-      - "{{ inventory_hostname }}"
-    vcenter_validate_certs: false
+  vmware.vmware.guest_info:
+    name: "{{ inventory_hostname }}"
+    datacenter: "Shadowman-DC"
+    validate_certs: false
   register: vm_info
   delegate_to: localhost
 
-- name: Collect id about a specific VM
-  vmware.vmware_rest.vcenter_vm_info:
-    vm: "{{ vm_info.value[0].vm }}"
-    vcenter_validate_certs: false
-  register: vm_full_info
-  delegate_to: localhost
-
 - name: Retrieve the CPU information from the VM
-  vmware.vmware_rest.vcenter_vm_hardware_cpu_info:
-    vm: '{{ vm_full_info.id }}'
-    vcenter_validate_certs: false
-  register: vm_cpu
+  vmware.vmware.vm_resource_info:
+    moid: "{{ vm_info.guests[0].moid }}"
+    validate_certs: false
+  register: vm_resource
   delegate_to: localhost
 
 - name: Retrieve Max Allowed Cores
@@ -31,12 +24,14 @@
   delegate_to: localhost
 
 - name: Add one core to the VM if under the max
-  vmware.vmware_rest.vcenter_vm_hardware_cpu:
-    vm: '{{ vm_full_info.id }}'
-    count: '{{ vm_cpu.value.count | int + 1 }}'
-    vcenter_validate_certs: false
+  vmware.vmware.vm:
+    moid: "{{ vm_info.guests[0].moid }}"
+    datacenter: "Shadowman-DC"
+    cpu:
+      cores: "{{ vm_resource.vms[0].cpu.processor_count | int + 1 }}"
+    validate_certs: false
   delegate_to: localhost
-  when: vm_cpu.value.count | int < cpu_core_max_result.records[0].u_cpu_core_max | int
+  when: vm_resource.vms[0].cpu.processor_count | int < cpu_core_max_result.records[0].u_cpu_core_max | int
 
 - name: Pass Updates if cores updated
   ansible.builtin.set_stats:
@@ -44,7 +39,7 @@
       sn_urgency: medium
       sn_impact: medium
       comment: "CPU increased, manual log review required"
-  when: vm_cpu.value.count | int < cpu_core_max_result.records[0].u_cpu_core_max | int
+  when: vm_resource.vms[0].cpu.processor_count | int < cpu_core_max_result.records[0].u_cpu_core_max | int
 
 - name: Pass Updates if cores at limit
   ansible.builtin.set_stats:
@@ -52,4 +47,4 @@
       sn_urgency: high
       sn_impact: high
       comment: "CPU NOT increased, full manual intervention required"
-  when: vm_cpu.value.count | int >= cpu_core_max_result.records[0].u_cpu_core_max | int
+  when: vm_resource.vms[0].cpu.processor_count | int >= cpu_core_max_result.records[0].u_cpu_core_max | int
