@@ -23,7 +23,7 @@
   register: cpu_core_max_result
   delegate_to: localhost
 
-- name: Add one core to the VM if under the max
+- name: Add one core to the VM if under the max or no max is set
   vmware.vmware.vm:
     moid: "{{ vm_info.guests[0].moid }}"
     datacenter: "Shadowman-DC"
@@ -31,7 +31,7 @@
       cores: "{{ vm_resource.vms[0].cpu.processor_count | int + 1 }}"
     validate_certs: false
   delegate_to: localhost
-  when: vm_resource.vms[0].cpu.processor_count | int < cpu_core_max_result.records[0].u_cpu_core_max | int
+  when: (vm_resource.vms[0].cpu.processor_count | int < cpu_core_max_result.records[0].u_cpu_core_max | int) or cpu_core_max_result.records[0].u_cpu_core_max == ''
 
 - name: Pass Updates if cores updated
   ansible.builtin.set_stats:
@@ -39,7 +39,7 @@
       sn_urgency: medium
       sn_impact: medium
       comment: "CPU increased, manual log review required"
-  when: vm_resource.vms[0].cpu.processor_count | int < cpu_core_max_result.records[0].u_cpu_core_max | int
+  when: (vm_resource.vms[0].cpu.processor_count | int < cpu_core_max_result.records[0].u_cpu_core_max | int) or cpu_core_max_result.records[0].u_cpu_core_max == ''
 
 - name: Pass Updates if cores at limit
   ansible.builtin.set_stats:
