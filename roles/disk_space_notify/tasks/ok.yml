@@ -1,0 +1,23 @@
+---
+- name: Build Mattermost attachment (healthy)
+  ansible.builtin.set_fact:
+    mattermost_attachments:
+      - text: "Disk check completed for {{ notify_host }} — no remediation required."
+        color: '#2ecc71'
+        title: Disk Utilization OK
+        fields:
+          - title: Target Host
+            value: "{{ notify_host }}"
+            short: true
+          - title: Disk Mount
+            value: "{{ disk_mount }}"
+            short: true
+          - title: Disk Use Percent
+            value: "{{ disk_use_percent }}"
+            short: true
+          - title: Disk Tier
+            value: "{{ disk_tier }}"
+            short: true
+          - title: Remediation Action
+            value: "{{ remediation_action }}"
+            short: true

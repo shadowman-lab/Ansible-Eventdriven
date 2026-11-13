@@ -1,0 +1,44 @@
+---
+- name: Build Mattermost attachment (warning — cleanup, check mode)
+  ansible.builtin.set_fact:
+    mattermost_attachments:
+      - text: >-
+          [check mode] {{ notify_host }}: would reclaim {{ total_reclaimed_mb }} MB
+          on {{ disk_mount }} (currently {{ disk_use_percent_before }}% full).
+        color: '#f39c12'
+        title: Warning — Disk Cleanup (Check Mode)
+        fields:
+          - title: Would Reclaim
+            value: "{{ total_reclaimed_mb }} MB"
+            short: true
+          - title: DNF Cache
+            value: "{{ dnf_cache_removed }} files ({{ dnf_cache_freed_mb }} MB)"
+            short: true
+          - title: Log Archives
+            value: >-
+              {{ log_archives_removed }} files ({{ logs_freed_mb }} MB,
+              older than {{ log_retention_days }} days)
+            short: false
+  when: dry_run | default(false) | bool
+
+- name: Build Mattermost attachment (warning — cleanup)
+  ansible.builtin.set_fact:
+    mattermost_attachments:
+      - text: >-
+          {{ notify_host }}: removed {{ total_reclaimed_mb }} MB from {{ disk_mount }}
+          (usage {{ disk_use_percent_before }}% → {{ disk_use_percent_after }}%).
+        color: '#f39c12'
+        title: Warning — Disk Cleanup
+        fields:
+          - title: Total Reclaimed
+            value: "{{ total_reclaimed_mb }} MB"
+            short: true
+          - title: DNF Cache
+            value: "{{ dnf_cache_removed }} files ({{ dnf_cache_freed_mb }} MB)"
+            short: true
+          - title: Log Archives
+            value: >-
+              {{ log_archives_removed }} files ({{ logs_freed_mb }} MB,
+              older than {{ log_retention_days }} days)
+            short: false
+  when: not (dry_run | default(false) | bool)

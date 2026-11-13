@@ -1,0 +1,46 @@
+---
+- name: Build Mattermost attachment (critical — disk expanded, check mode)
+  ansible.builtin.set_fact:
+    mattermost_attachments:
+      - text: >-
+          [check mode] {{ notify_host }}: would expand EBS volume on {{ disk_mount }}
+          (currently {{ disk_use_percent }}% full).
+        color: '#9b59b6'
+        title: Critical — Disk Expanded (Check Mode)
+        fields:
+          - title: Action
+            value: Would expand EBS volume and grow filesystem
+            short: false
+          - title: Volume Before
+            value: "{{ volume_size_before_gb }} GiB"
+            short: true
+          - title: Volume After
+            value: "{{ volume_size_after_gb }} GiB"
+            short: true
+          - title: Would Add
+            value: "{{ disk_expand_gb }} GiB"
+            short: true
+  when: dry_run | default(false) | bool
+
+- name: Build Mattermost attachment (critical — disk expanded)
+  ansible.builtin.set_fact:
+    mattermost_attachments:
+      - text: >-
+          {{ notify_host }}: expanded EBS volume on {{ disk_mount }}
+          (was {{ disk_use_percent }}% full).
+        color: '#9b59b6'
+        title: Critical — Disk Expanded
+        fields:
+          - title: Action
+            value: Expand EBS volume and grow filesystem
+            short: false
+          - title: Volume Before
+            value: "{{ volume_size_before_gb }} GiB"
+            short: true
+          - title: Volume After
+            value: "{{ volume_size_after_gb }} GiB"
+            short: true
+          - title: Added
+            value: "{{ disk_expand_gb }} GiB"
+            short: true
+  when: not (dry_run | default(false) | bool)

@@ -1,0 +1,7 @@
+---
+- name: Notify Mattermost Channel About Disk Issues
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - disk_space_notify

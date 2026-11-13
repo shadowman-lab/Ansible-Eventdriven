@@ -1,0 +1,25 @@
+---
+- name: Build Mattermost attachment (unsupported tier)
+  ansible.builtin.set_fact:
+    mattermost_attachments:
+      - text: >-
+          Disk utilization workflow could not route remediation —
+          disk_tier is not ok, warn, or critical. Manual review required.
+        color: '#e74c3c'
+        title: Unsupported Disk Tier
+        fields:
+          - title: Target Host
+            value: "{{ notify_host }}"
+            short: true
+          - title: Disk Mount
+            value: "{{ disk_mount }}"
+            short: true
+          - title: Disk Use Percent
+            value: "{{ disk_use_percent }}"
+            short: true
+          - title: Disk Tier
+            value: "{{ disk_tier }}"
+            short: true
+          - title: Remediation Action
+            value: "{{ remediation_action }}"
+            short: true

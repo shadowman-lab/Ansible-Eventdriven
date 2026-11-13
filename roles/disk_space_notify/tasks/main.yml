@@ -1,0 +1,40 @@
+---
+- name: Apply defaults
+  ansible.builtin.set_fact:
+    notify_host: "{{ notify_host | default('unknown') | string }}"
+    disk_mount: "{{ disk_mount | default('unknown') | string }}"
+    disk_use_percent: "{{ disk_use_percent | default('unknown') | string }}"
+    disk_tier: "{{ disk_tier | default('unknown') | string | trim | lower }}"
+    remediation_action: "{{ remediation_action | default('unknown') | string }}"
+    dnf_cache_removed: "{{ dnf_cache_removed | default('unknown') | string }}"
+    log_archives_removed: "{{ log_archives_removed | default('unknown') | string }}"
+    disk_use_percent_before: "{{ disk_use_percent_before | default(disk_use_percent | default('unknown')) | string }}"
+    disk_use_percent_after: "{{ disk_use_percent_after | default('unknown') | string }}"
+    total_reclaimed_mb: "{{ total_reclaimed_mb | default('unknown') | string }}"
+    dnf_cache_freed_mb: "{{ dnf_cache_freed_mb | default('unknown') | string }}"
+    logs_freed_mb: "{{ logs_freed_mb | default('unknown') | string }}"
+    log_retention_days: "{{ log_retention_days | default('90') | string }}"
+    dry_run: "{{ dry_run | default(false) | bool }}"
+    disk_expand_gb: "{{ disk_expand_gb | default('unknown') | string }}"
+    volume_size_before_gb: "{{ volume_size_before_gb | default('unknown') | string }}"
+    volume_size_after_gb: "{{ volume_size_after_gb | default('unknown') | string }}"
+
+- name: Include notification template for disk tier
+  block:
+    - name: Include tier-specific notification template
+      ansible.builtin.include_tasks: "{{ disk_tier }}.yml"
+  rescue:
+    - name: Include unsupported notification template
+      ansible.builtin.include_tasks: unsupported.yml
+    - name: Show notify template resolution
+      ansible.builtin.debug:
+        msg: >-
+          Could not load {{ disk_tier }}.yml
+          (disk_tier={{ disk_tier | quote }}) — using unsupported.
+
+- name: Send notification message via Mattermost
+  community.general.mattermost:
+    url: "{{ mattermost_url }}"
+    api_key: "{{ mattermost_api_key }}"
+    attachments: "{{ mattermost_attachments }}"
+  delegate_to: localhost
