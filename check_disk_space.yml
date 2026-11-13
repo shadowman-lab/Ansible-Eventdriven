@@ -1,0 +1,7 @@
+---
+- name: Check Disk Space
+  hosts: "{{ vm_name | default('localhost') }}"
+  gather_facts: false
+
+  roles:
+    - check_disk

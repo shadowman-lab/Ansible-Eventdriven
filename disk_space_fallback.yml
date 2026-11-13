@@ -1,0 +1,8 @@
+---
+- name: Disk Space Fallback
+  hosts: "{{ vm_name | default('localhost') }}"
+  gather_facts: false
+
+  roles:
+    - remediate_disk_fallback
+    - publish_notify_artifacts

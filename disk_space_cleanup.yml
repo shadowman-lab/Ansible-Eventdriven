@@ -1,0 +1,7 @@
+---
+- name: Disk Space Cleanup
+  hosts: "{{ vm_name | default('localhost') }}"
+
+  roles:
+    - remediate_disk_cleanup
+    - publish_notify_artifacts

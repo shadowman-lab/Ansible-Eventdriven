@@ -1,0 +1,12 @@
+- name: Apply defaults
+  ansible.builtin.set_fact:
+    disk_mount: "{{ disk_mount | default('/') }}"
+    disk_use_percent: "{{ disk_use_percent | default('unknown') }}"
+    disk_tier: "{{ disk_tier | default('unknown') }}"
+    remediation_action: Unknown Tier — Manual Review
+
+- name: Unexpected disk tier — no automated remediation
+  ansible.builtin.debug:
+    msg: >-
+      Could not route remediation for {{ disk_mount }} at {{ disk_use_percent }}% full.
+      disk_tier={{ disk_tier | quote }} is not ok, warn, or critical — manual review required.

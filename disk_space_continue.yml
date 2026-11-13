@@ -1,0 +1,8 @@
+---
+- name: Disk Space Continue
+  hosts: "{{ vm_name | default('localhost') }}"
+  gather_facts: false
+
+  roles:
+    - remediate_disk_continue
+    - publish_notify_artifacts

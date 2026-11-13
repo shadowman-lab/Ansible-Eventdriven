@@ -1,0 +1,147 @@
+---
+- name: Apply defaults
+  ansible.builtin.set_fact:
+    disk_mount: "{{ disk_mount | default('/') }}"
+    disk_use_percent: "{{ disk_use_percent | default('unknown') }}"
+    disk_tier: "{{ disk_tier | default('unknown') }}"
+    log_retention_days: "{{ log_retention_days | default(90) | int }}"
+
+- name: Capture disk usage before cleanup
+  ansible.builtin.command:
+    cmd: df -P {{ disk_mount }}
+  register: _df_before
+  changed_when: false
+  check_mode: false
+
+- name: Parse disk usage before cleanup
+  ansible.builtin.set_fact:
+    disk_use_percent_before: >-
+      {{
+        _df_before.stdout_lines[1].split()[4] | regex_replace('%', '')
+        if (_df_before.stdout_lines | length) > 1
+        else disk_use_percent
+      }}
+    _disk_used_kb_before: >-
+      {{
+        _df_before.stdout_lines[1].split()[2] | int
+        if (_df_before.stdout_lines | length) > 1
+        else 0
+      }}
+
+- name: Find dnf cache files
+  ansible.builtin.find:
+    paths: /var/cache/dnf
+    hidden: true
+    file_type: any
+  register: dnf_cache_files
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Remove dnf cache files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ dnf_cache_files.files | default([]) }}"
+  loop_control:
+    label: "{{ item.path }}"
+  when:
+    - ansible_facts['os_family'] == 'RedHat'
+
+- name: Find old compressed log archives
+  ansible.builtin.find:
+    paths: /var/log
+    patterns: "*.gz"
+    age: "{{ log_retention_days }}d"
+    age_stamp: mtime
+    recurse: true
+    file_type: file
+  register: old_log_archives_gz
+
+- name: Find old uncompressed rotated logs
+  ansible.builtin.find:
+    paths: /var/log
+    patterns:
+      - "messages-*"
+      - "secure-*"
+      - "wtmp-*"
+      - "btmp-*"
+    age: "{{ log_retention_days }}d"
+    age_stamp: mtime
+    recurse: true
+    file_type: file
+  register: old_log_archives_plain
+
+- name: Combine log files to remove
+  ansible.builtin.set_fact:
+    old_logs_to_remove: "{{ (old_log_archives_gz.files | default([])) + (old_log_archives_plain.files | default([])) }}"
+
+- name: Remove old log archives
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ old_logs_to_remove }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: Log cleanup completed
+  ansible.builtin.debug:
+    msg: >-
+      {{ disk_mount }} was {{ disk_use_percent_before }}% full —
+      removed {{ dnf_cache_files.files | default([]) | length }} dnf cache entries,
+      {{ old_log_archives_gz.files | default([]) | length }} compressed logs,
+      and {{ old_log_archives_plain.files | default([]) | length }} uncompressed rotated logs
+      older than {{ log_retention_days }} days.
+
+- name: Capture disk usage after cleanup
+  ansible.builtin.command:
+    cmd: df -P {{ disk_mount }}
+  register: _df_after
+  changed_when: false
+  check_mode: false
+
+- name: Parse disk usage after cleanup
+  ansible.builtin.set_fact:
+    disk_use_percent_after: >-
+      {{
+        _df_after.stdout_lines[1].split()[4] | regex_replace('%', '')
+        if (_df_after.stdout_lines | length) > 1
+        else disk_use_percent_before
+      }}
+    _disk_used_kb_after: >-
+      {{
+        _df_after.stdout_lines[1].split()[2] | int
+        if (_df_after.stdout_lines | length) > 1
+        else _disk_used_kb_before
+      }}
+
+- name: Calculate cleanup savings
+  ansible.builtin.set_fact:
+    dnf_cache_freed_mb: >-
+      {{
+        (
+          (dnf_cache_files.files | default([]) | map(attribute='size') | sum | default(0))
+          / 1048576
+        ) | round(1)
+      }}
+    logs_freed_mb: >-
+      {{
+        (
+          (old_logs_to_remove | map(attribute='size') | sum | default(0)) / 1048576
+        ) | round(1)
+      }}
+
+- name: Calculate reclaimed and mount usage change
+  ansible.builtin.set_fact:
+    total_reclaimed_mb: "{{ (dnf_cache_freed_mb | float) + (logs_freed_mb | float) | round(1) }}"
+    mount_usage_change_mb: >-
+      {{
+        (
+          ((_disk_used_kb_before | int) - (_disk_used_kb_after | int)) / 1024
+        ) | round(1)
+      }}
+
+- name: Publish cleanup results for downstream steps
+  ansible.builtin.set_fact:
+    remediation_action: Cleanup Logs
+    disk_use_percent: "{{ disk_use_percent_after }}"
+    dnf_cache_removed: "{{ dnf_cache_files.files | default([]) | length }}"
+    log_archives_removed: "{{ old_logs_to_remove | length }}"

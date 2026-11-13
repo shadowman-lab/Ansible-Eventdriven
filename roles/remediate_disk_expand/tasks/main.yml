@@ -1,0 +1,212 @@
+- name: Apply defaults from discovered target
+  ansible.builtin.set_fact:
+    disk_mount: "{{ disk_mount | default('/') }}"
+    disk_use_percent: "{{ disk_use_percent | default('unknown') }}"
+    disk_tier: "{{ disk_tier | default('critical') }}"
+    disk_expand_gb: "{{ disk_expand_gb | default(5) | int }}"
+    vm_root_disk_label: "{{ vm_root_disk_label | default('Hard disk 1') }}"
+
+- name: Gather VM hardware info
+  vmware.vmware.vm_info:
+    name: "{{ inventory_hostname }}"
+    datacenter: "Shadowman-DC"
+    schema: vsphere
+    gather_identity: false
+    validate_certs: false
+    properties:
+      - name
+      - config.hardware.device
+  register: _vm_info
+  delegate_to: localhost
+
+- name: Resolve root virtual disk
+  ansible.builtin.set_fact:
+    vm_disk: >-
+      {{
+        _vm_info.vms[0].config.hardware.device
+        | selectattr('_vimtype', 'equalto', 'vim.vm.device.VirtualDisk')
+        | selectattr('deviceInfo.label', 'equalto', vm_root_disk_label)
+        | first
+      }}
+
+- name: Resolve controller for root virtual disk
+  ansible.builtin.set_fact:
+    vm_disk_controller: >-
+      {{
+        _vm_info.vms[0].config.hardware.device
+        | selectattr('_vimtype', 'in', vm_scsi_controller_type_map.keys() | list)
+        | selectattr('key', 'equalto', vm_disk.controllerKey)
+        | first
+      }}
+
+- name: Calculate disk placement and new size
+  ansible.builtin.set_fact:
+    vm_disk_controller_type: "{{ vm_scsi_controller_type_map[vm_disk_controller._vimtype] }}"
+    vm_disk_device_node: "SCSI({{ vm_disk_controller.busNumber }}:{{ vm_disk.unitNumber }})"
+    vm_disk_datastore_moid: "{{ vm_disk.backing.datastore.split(':')[1] }}"
+    volume_size_before_gb: "{{ (vm_disk.capacityInKB | int / 1048576) | round | int }}"
+
+- name: Calculate new virtual disk size
+  ansible.builtin.set_fact:
+    volume_size_after_gb: "{{ volume_size_before_gb | int + (disk_expand_gb | int) }}"
+
+- name: Expand virtual disk
+  vmware.vmware.vm:
+    validate_certs: false
+    name: "{{ inventory_hostname }}"
+    datacenter: "Shadowman-DC"
+    disks_remove_unmanaged: false
+    scsi_controllers_remove_unmanaged: false
+    scsi_controllers:
+      - bus_number: "{{ vm_disk_controller.busNumber }}"
+        controller_type: "{{ vm_disk_controller_type }}"
+    disks:
+      - device_node: "{{ vm_disk_device_node }}"
+        size: "{{ volume_size_after_gb }}gb"
+        datastore: "{{ vm_disk_datastore_moid }}"
+    timeout: 600
+  register: _vm_modify
+  delegate_to: localhost
+
+- name: Show VMware disk expansion result
+  ansible.builtin.debug:
+    msg: >-
+      Expanded {{ vm_disk_device_node }} on {{ inventory_hostname }}
+      from {{ volume_size_before_gb }} GiB
+      to {{ volume_size_after_gb }} GiB.
+
+- name: Discover root block device for mount
+  ansible.builtin.command:
+    cmd: findmnt -n -o SOURCE {{ disk_mount }}
+  register: _root_source
+  changed_when: false
+  check_mode: false
+
+- name: Determine root block device type
+  ansible.builtin.command:
+    cmd: lsblk -ndo TYPE {{ _root_source.stdout | trim }}
+  register: _root_type
+  changed_when: false
+  check_mode: false
+
+- name: Set root device facts
+  ansible.builtin.set_fact:
+    _root_device: "{{ _root_source.stdout | trim }}"
+    _root_on_lvm: "{{ _root_type.stdout | trim == 'lvm' }}"
+
+- name: Resolve volume group backing LVM root device
+  ansible.builtin.command:
+    cmd: lvs --noheadings -o vg_name {{ _root_device }}
+  register: _root_vg
+  changed_when: false
+  check_mode: false
+  when: _root_on_lvm
+
+- name: Resolve physical volumes backing the root volume group
+  ansible.builtin.command:
+    cmd: pvs --noheadings -o pv_name -S vg_name={{ _root_vg.stdout | trim }}
+  register: _root_pvs
+  changed_when: false
+  check_mode: false
+  when: _root_on_lvm
+
+- name: Fail if root volume group spans multiple physical volumes
+  ansible.builtin.fail:
+    msg: >-
+      Volume group {{ _root_vg.stdout | trim }} spans multiple physical volumes
+      ({{ _root_pvs.stdout_lines | map('trim') | list | join(', ') }}); this
+      playbook only supports growing a single-PV volume group.
+  when:
+    - _root_on_lvm
+    - _root_pvs.stdout_lines | map('trim') | reject('equalto', '') | list | length > 1
+
+- name: Set partition to grow
+  ansible.builtin.set_fact:
+    _grow_partition: "{{ (_root_pvs.stdout | trim) if _root_on_lvm else _root_device }}"
+
+- name: Resolve parent disk for partition to grow
+  ansible.builtin.command:
+    cmd: lsblk -no PKNAME {{ _grow_partition }}
+  register: _grow_disk_cmd
+  changed_when: false
+  check_mode: false
+
+- name: Debug
+  ansible.builtin.debug:
+    msg: "{{ _grow_disk_cmd }} and {{ _root_source }}"
+
+- name: Set growpart targets
+  ansible.builtin.set_fact:
+    _root_disk: "/dev/{{ _grow_disk_cmd.stdout | trim }}"
+    _root_partition_num: "{{ _grow_partition | regex_search('p?([0-9]+)$', '\\1') | first }}"
+
+- name: Preview partition and filesystem grow (check mode)
+  ansible.builtin.debug:
+    msg: >-
+      [check mode] Would run growpart {{ _root_disk }} {{ _root_partition_num }}{{
+      (', pvresize ' ~ _grow_partition ~ ', lvextend ' ~ _root_device) if _root_on_lvm else ''
+      }} and xfs_growfs {{ disk_mount }}.
+
+- name: Grow partition to use expanded virtual disk
+  ansible.builtin.command:
+    argv:
+      - growpart
+      - "{{ _root_disk }}"
+      - "{{ _root_partition_num }}"
+  register: _growpart
+  changed_when: "'CHANGED' in _growpart.stdout"
+  failed_when: _growpart.rc != 0 and "'NOCHANGE' not in _growpart.stdout"
+
+- name: Resize physical volume to use grown partition
+  ansible.builtin.command:
+    argv:
+      - pvresize
+      - "{{ _grow_partition }}"
+  register: _pvresize
+  changed_when: "'changed' in _pvresize.stdout"
+  when: _root_on_lvm
+
+- name: Extend logical volume to use all free space in volume group
+  ansible.builtin.command:
+    argv:
+      - lvextend
+      - "-l"
+      - "+100%FREE"
+      - "{{ _root_device }}"
+  register: _lvextend
+  changed_when: "'Size of logical volume' in _lvextend.stdout"
+  failed_when: _lvextend.rc != 0 and 'matches existing size' not in _lvextend.stdout
+  when: _root_on_lvm
+
+- name: Grow XFS filesystem on mount
+  ansible.builtin.command:
+    cmd: xfs_growfs {{ disk_mount }}
+  register: _xfs_grow
+  changed_when: true
+
+- name: Show filesystem size after grow
+  ansible.builtin.command:
+    cmd: df -hT {{ disk_mount }}
+  register: _df_after
+  changed_when: false
+  check_mode: false
+
+- name: Display expanded filesystem
+  ansible.builtin.debug:
+    msg: "{{ _df_after.stdout_lines }}"
+
+- name: Set disk use percent from live df when not supplied
+  ansible.builtin.set_fact:
+    disk_use_percent: >-
+      {%- set supplied = disk_use_percent | default('unknown') | string -%}
+      {%- if supplied not in ['unknown', ''] -%}
+      {{ supplied }}
+      {%- elif (_df_after.stdout_lines | length) > 1 -%}
+      {{ _df_after.stdout_lines[1] | regex_search('([0-9]+)%', '\1') | first | default('unknown') }}
+      {%- else -%}
+      unknown
+      {%- endif -%}
+
+- name: Set notify artifact values for expansion branch
+  ansible.builtin.set_fact:
+    remediation_action: Expand EBS Volume

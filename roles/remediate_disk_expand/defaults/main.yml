@@ -1,0 +1,6 @@
+---
+vm_scsi_controller_type_map:
+  vim.vm.device.VirtualLsiLogicController: lsilogic
+  vim.vm.device.ParaVirtualSCSIController: paravirtual
+  vim.vm.device.VirtualBusLogicController: buslogic
+  vim.vm.device.VirtualLsiLogicSASController: lsilogicsas

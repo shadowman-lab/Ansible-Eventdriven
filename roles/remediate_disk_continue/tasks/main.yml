@@ -1,0 +1,10 @@
+- name: Apply defaults
+  ansible.builtin.set_fact:
+    disk_mount: "{{ disk_mount | default('/') }}"
+    disk_use_percent: "{{ disk_use_percent | default('unknown') }}"
+    disk_tier: "{{ disk_tier | default('ok') }}"
+    remediation_action: No Action Taken
+
+- name: Disk usage is healthy
+  ansible.builtin.debug:
+    msg: "{{ disk_mount }} at {{ disk_use_percent }}% — no action needed."
