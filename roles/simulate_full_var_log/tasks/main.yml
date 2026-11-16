@@ -1,4 +1,8 @@
 ---
+- name: Normalize disk_usage_threshold to an integer
+  ansible.builtin.set_fact:
+    disk_usage_threshold: "{{ disk_usage_threshold | int }}"
+
 - name: Gather current mount facts
   ansible.builtin.setup:
     filter: ansible_mounts
