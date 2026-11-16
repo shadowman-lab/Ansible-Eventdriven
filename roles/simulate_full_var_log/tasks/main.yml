@@ -1,0 +1,93 @@
+---
+- name: Gather current mount facts
+  ansible.builtin.setup:
+    filter: ansible_mounts
+
+- name: Capture the / mount facts
+  ansible.builtin.set_fact:
+    root_mount: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | first }}"
+
+- name: Compute current usage of /
+  ansible.builtin.set_fact:
+    root_used_bytes: "{{ root_mount.size_total - root_mount.size_available }}"
+    root_usage_percent: "{{ ((1 - (root_mount.size_available / root_mount.size_total)) * 100) | round(1) }}"
+
+- name: Report current / usage
+  ansible.builtin.debug:
+    msg: "/ is currently {{ root_usage_percent }}% used ({{ (root_used_bytes | int / 1024 / 1024 / 1024) | round(2) }} GiB)"
+
+- name: Compute bytes needed to push / over the threshold
+  ansible.builtin.set_fact:
+    # 10 MiB headroom so the result lands strictly above the threshold,
+    # not just at it.
+    needed_bytes: >-
+      {{ ((disk_usage_threshold / 100 * root_mount.size_total) - (root_used_bytes | int) + (10 * 1024 * 1024)) | int }}
+    max_safe_bytes: "{{ (root_mount.size_available | int) - (safety_margin_mb * 1024 * 1024) }}"
+
+- name: Fail if there isn't enough free space to reach the threshold safely
+  ansible.builtin.fail:
+    msg: >-
+      Not enough free space on / to reach {{ disk_usage_threshold }}% usage
+      while keeping {{ safety_margin_mb }}MiB free. Lower disk_usage_threshold
+      or safety_margin_mb, or free up space first.
+  when:
+    - needed_bytes | int > 0
+    - needed_bytes | int > max_safe_bytes | int
+
+- name: Determine fallocate size (MiB)
+  ansible.builtin.set_fact:
+    fill_size_mb: "{{ [(needed_bytes | int / 1024 / 1024) | round(0, 'ceil') | int, 1] | max }}"
+
+- name: Report whether / is already above the threshold
+  ansible.builtin.debug:
+    msg: "/ is already above {{ disk_usage_threshold }}%; creating a minimal placeholder file instead."
+  when: needed_bytes | int <= 0
+
+- name: Allocate the target file with fallocate
+  ansible.builtin.command:
+    cmd: "fallocate -l {{ fill_size_mb }}M {{ target_file }}"
+    creates: "{{ target_file }}"
+
+- name: Lock down ownership and permissions like a real rotated log
+  ansible.builtin.file:
+    path: "{{ target_file }}"
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Get a back-dated timestamp from the target host's clock
+  ansible.builtin.command:
+    cmd: "date -d '-{{ fake_age_months }} months' +%Y%m%d%H%M.%S"
+  register: backdated_timestamp
+  changed_when: false
+
+- name: Back-date the target file to the configured number of months ago
+  ansible.builtin.file:
+    path: "{{ target_file }}"
+    modification_time: "{{ backdated_timestamp.stdout }}"
+    modification_time_format: "%Y%m%d%H%M.%S"
+    access_time: "{{ backdated_timestamp.stdout }}"
+    access_time_format: "%Y%m%d%H%M.%S"
+
+- name: Re-gather mount facts after allocation
+  ansible.builtin.setup:
+    filter: ansible_mounts
+
+- name: Recompute / usage after allocation
+  ansible.builtin.set_fact:
+    root_mount_after: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | first }}"
+
+- name: Report final / usage
+  ansible.builtin.debug:
+    msg: >-
+      / is now {{ ((1 - (root_mount_after.size_available / root_mount_after.size_total)) * 100) | round(1) }}%
+      used after creating {{ target_file }} ({{ fill_size_mb }}MiB, back-dated {{ fake_age_months }} months).
+
+- name: Confirm the threshold was reached
+  ansible.builtin.assert:
+    that:
+      - ((1 - (root_mount_after.size_available / root_mount_after.size_total)) * 100) | float > disk_usage_threshold
+    fail_msg: >-
+      / usage did not exceed {{ disk_usage_threshold }}% as expected. Re-run with a larger
+      disk_usage_threshold margin or check for concurrent disk activity.
+    success_msg: "/ usage is confirmed above {{ disk_usage_threshold }}%."

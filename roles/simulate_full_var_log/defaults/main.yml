@@ -1,0 +1,7 @@
+---
+target_file: /var/log/messages.gz
+disk_usage_threshold: 80
+fake_age_months: 6
+# Keep at least this much free space after filling, so we never
+# actually run the disk completely out of space.
+safety_margin_mb: 200

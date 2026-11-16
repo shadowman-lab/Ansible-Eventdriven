@@ -1,0 +1,7 @@
+---
+- name: Simulate Full var log
+  hosts: "{{ vm_name | default('localhost') }}"
+  gather_facts: false
+
+  roles:
+    - simulate_full_var_log
