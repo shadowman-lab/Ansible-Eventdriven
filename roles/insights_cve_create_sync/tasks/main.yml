@@ -113,8 +113,13 @@
     validate_certs: false
   delegate_to: localhost
 
+- name: Filter cve_list down to CVEs that actually had a playbook generated
+  ansible.builtin.set_fact:
+    ansible_cve_list: "{{ pbs_per_host.results | selectattr('json.id', 'defined') | map(attribute='item') | list }}"
+
 - name: Pass along incident data to the next role
   ansible.builtin.set_stats:
     data:
       new_incident: "{{ new_incident }}"
+      ansible_cve_list: "{{ ansible_cve_list }}"
   delegate_to: localhost
