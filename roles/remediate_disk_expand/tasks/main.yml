@@ -126,36 +126,34 @@
 
 - name: Resolve parent disk for partition to grow
   ansible.builtin.command:
-    cmd: lsblk -no PKNAME {{ _grow_partition }}
+    argv:
+      - lsblk
+      - -no
+      - PKNAME
+      - "{{ _grow_partition }}"
   register: _grow_disk_cmd
   changed_when: false
   check_mode: false
 
-- name: Debug
-  ansible.builtin.debug:
-    msg: "{{ _grow_disk_cmd }} and {{ _root_source }}"
-
-- name: Set growpart targets
+- name: Set partition grow targets
   ansible.builtin.set_fact:
-    _root_disk: "/dev/{{ _grow_disk_cmd.stdout | trim }}"
+    _root_disk: "/dev/{{ _grow_disk_cmd.stdout_lines | map('trim') | reject('equalto', '') | list | first }}"
     _root_partition_num: "{{ _grow_partition | regex_search('p?([0-9]+)$', '\\1') | first }}"
 
 - name: Preview partition and filesystem grow (check mode)
   ansible.builtin.debug:
     msg: >-
-      [check mode] Would run growpart {{ _root_disk }} {{ _root_partition_num }}{{
+      [check mode] Would resize partition {{ _root_partition_num }} on {{ _root_disk }} to 100%{{
       (', pvresize ' ~ _grow_partition ~ ', lvextend ' ~ _root_device) if _root_on_lvm else ''
       }} and xfs_growfs {{ disk_mount }}.
 
 - name: Grow partition to use expanded virtual disk
-  ansible.builtin.command:
-    argv:
-      - growpart
-      - "{{ _root_disk }}"
-      - "{{ _root_partition_num }}"
-  register: _growpart
-  changed_when: "'CHANGED' in _growpart.stdout"
-  failed_when: _growpart.rc != 0 and "'NOCHANGE' not in _growpart.stdout"
+  community.general.parted:
+    device: "{{ _root_disk }}"
+    number: "{{ _root_partition_num | int }}"
+    part_end: "100%"
+    resize: true
+    state: present
 
 - name: Resize physical volume to use grown partition
   ansible.builtin.command:
