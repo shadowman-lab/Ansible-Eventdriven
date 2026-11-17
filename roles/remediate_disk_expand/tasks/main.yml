@@ -140,6 +140,12 @@
     _root_disk: "/dev/{{ _grow_disk_cmd.stdout_lines | map('trim') | reject('equalto', '') | list | first }}"
     _root_partition_num: "{{ _grow_partition | regex_search('p?([0-9]+)$', '\\1') | first }}"
 
+- name: Rescan SCSI bus to pick up expanded virtual disk capacity
+  ansible.builtin.shell:
+    cmd: echo 1 > /sys/class/block/{{ _root_disk | basename }}/device/rescan
+  changed_when: false
+  check_mode: false
+
 - name: Re-read partition table after virtual disk expand
   ansible.builtin.command:
     argv:
