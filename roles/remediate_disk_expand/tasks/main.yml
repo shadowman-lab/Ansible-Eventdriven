@@ -3,7 +3,7 @@
     disk_mount: "{{ disk_mount | default('/') }}"
     disk_use_percent: "{{ disk_use_percent | default('unknown') }}"
     disk_tier: "{{ disk_tier | default('critical') }}"
-    disk_expand_gb: "{{ disk_expand_gb | default(5) | int }}"
+    disk_expand_gb: "{{ disk_expand_gb | default(15) | int }}"
     vm_root_disk_label: "{{ vm_root_disk_label | default('Hard disk 1') }}"
 
 - name: Gather VM hardware info
