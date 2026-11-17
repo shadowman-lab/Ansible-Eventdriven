@@ -148,10 +148,25 @@
   changed_when: false
   check_mode: false
 
+- name: Detect existing partition table type
+  ansible.builtin.command:
+    argv:
+      - lsblk
+      - -ndo
+      - PTTYPE
+      - "{{ _root_disk }}"
+  register: _root_disk_pttype
+  changed_when: false
+  check_mode: false
+
+- name: Set partition table label for resize
+  ansible.builtin.set_fact:
+    _root_disk_label: "{{ 'msdos' if (_root_disk_pttype.stdout | trim) == 'dos' else (_root_disk_pttype.stdout | trim) }}"
+
 - name: Preview partition and filesystem grow (check mode)
   ansible.builtin.debug:
     msg: >-
-      [check mode] Would resize partition {{ _root_partition_num }} on {{ _root_disk }} to 100%{{
+      [check mode] Would resize partition {{ _root_partition_num }} on {{ _root_disk }} ({{ _root_disk_label }}) to 100%{{
       (', pvresize ' ~ _grow_partition ~ ', lvextend ' ~ _root_device) if _root_on_lvm else ''
       }} and xfs_growfs {{ disk_mount }}.
 
@@ -162,6 +177,7 @@
     part_end: "100%"
     resize: true
     state: present
+    label: "{{ _root_disk_label }}"
 
 - name: Resize physical volume to use grown partition
   ansible.builtin.command:
