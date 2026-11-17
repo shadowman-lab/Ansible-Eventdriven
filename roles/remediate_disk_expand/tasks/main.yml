@@ -140,6 +140,14 @@
     _root_disk: "/dev/{{ _grow_disk_cmd.stdout_lines | map('trim') | reject('equalto', '') | list | first }}"
     _root_partition_num: "{{ _grow_partition | regex_search('p?([0-9]+)$', '\\1') | first }}"
 
+- name: Re-read partition table after virtual disk expand
+  ansible.builtin.command:
+    argv:
+      - partprobe
+      - "{{ _root_disk }}"
+  changed_when: false
+  check_mode: false
+
 - name: Preview partition and filesystem grow (check mode)
   ansible.builtin.debug:
     msg: >-
