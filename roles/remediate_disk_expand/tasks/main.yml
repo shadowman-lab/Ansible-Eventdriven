@@ -179,6 +179,14 @@
     state: present
     label: "{{ _root_disk_label }}"
 
+- name: Re-read partition table after partition resize
+  ansible.builtin.command:
+    argv:
+      - partprobe
+      - "{{ _root_disk }}"
+  changed_when: false
+  check_mode: false
+
 - name: Resize physical volume to use grown partition
   ansible.builtin.command:
     argv:
