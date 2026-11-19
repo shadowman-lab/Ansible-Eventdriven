@@ -7,4 +7,5 @@ include devfile.yaml
 include *.code-workspace
 recursive-exclude .git *
 recursive-include collections *.yml
+recursive-include aoworkflows *.json
 recursive-include roles *

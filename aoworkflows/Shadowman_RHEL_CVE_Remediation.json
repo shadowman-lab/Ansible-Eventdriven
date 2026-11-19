@@ -1,0 +1,528 @@
+{
+  "name": "Shadowman RHEL CVE Remediation",
+  "edges": [
+    {
+      "to": "classify_cve",
+      "from": "trigger_manual"
+    },
+    {
+      "to": "generate_playbook",
+      "from": "route_switch",
+      "from_port": "case_0"
+    },
+    {
+      "to": "notify_mattermost",
+      "from": "route_switch",
+      "from_port": "case_1"
+    },
+    {
+      "to": "cve_approval",
+      "from": "generate_playbook"
+    },
+    {
+      "to": "activity_fe40b62f_2531_4167_bd83_a54378dc3387",
+      "from": "route_switch",
+      "from_port": "case_2"
+    },
+    {
+      "to": "route_switch",
+      "from": "classify_cve"
+    },
+    {
+      "to": "classify_cve",
+      "from": "activity_bc5d0c85_b7fd_4e6a_8b01_f6057e7173c0"
+    },
+    {
+      "to": "activity_90fdcbcf_100d_4663_a519_7d8fcfa92ffd",
+      "from": "cve_approval",
+      "from_port": "approved"
+    },
+    {
+      "to": "run_cve_remediation",
+      "from": "activity_90fdcbcf_100d_4663_a519_7d8fcfa92ffd"
+    },
+    {
+      "to": "run_cve_remediation",
+      "from": "activity_90fdcbcf_100d_4663_a519_7d8fcfa92ffd",
+      "from_port": "rejected"
+    },
+    {
+      "to": "activity_31c233df_c62c_4621_9276_f36da2fc3872",
+      "from": "activity_90fdcbcf_100d_4663_a519_7d8fcfa92ffd",
+      "from_port": "approved"
+    },
+    {
+      "to": "run_cve_remediation",
+      "from": "activity_31c233df_c62c_4621_9276_f36da2fc3872"
+    },
+    {
+      "to": "activity_01b1c7eb_8a94_46bf_a0c0_eb9a23880641",
+      "from": "cve_approval",
+      "from_port": "rejected"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "activity_01b1c7eb_8a94_46bf_a0c0_eb9a23880641",
+      "name": "Notify Mattermost of Manual CVE Response",
+      "type": "aap_job_template",
+      "position": {
+        "x": 2053.1331247528615,
+        "y": 243.0982695228946
+      },
+      "settings": {},
+      "parameters": {
+        "diff_mode": false,
+        "extra_vars": {
+          "details": "CVEs not remediated automatically on host ${trigger.insights_adv_target_host}",
+          "alert_title": "CVEs Not Remediated",
+          "alert_issue_value": "CVEs Not Remediated"
+        },
+        "credential_id": "5ffbf308-9bac-443b-959e-28faadbf3cc4",
+        "integration_id": "8fa0c32c-5809-41b8-ba1e-a46d1a8e94a5",
+        "job_template_id": 804,
+        "job_template_name": "Notify Mattermost",
+        "organization_name": "Infrastructure"
+      }
+    },
+    {
+      "id": "activity_31c233df_c62c_4621_9276_f36da2fc3872",
+      "name": "Update Satellite Content Views",
+      "type": "aap_workflow_job_template",
+      "position": {
+        "x": 2556.3654876202377,
+        "y": -179.17352853073663
+      },
+      "parameters": {
+        "credential_id": "5ffbf308-9bac-443b-959e-28faadbf3cc4",
+        "integration_id": "8fa0c32c-5809-41b8-ba1e-a46d1a8e94a5",
+        "organization_name": "Infrastructure",
+        "workflow_job_template_id": 570,
+        "workflow_job_template_name": "Satellite Content Promotion and Testing Lab"
+      }
+    },
+    {
+      "id": "activity_90fdcbcf_100d_4663_a519_7d8fcfa92ffd",
+      "name": "Approve Updating Content Views",
+      "type": "approval",
+      "position": {
+        "x": 2057.5214718585034,
+        "y": -53.69105502130045
+      },
+      "settings": {},
+      "parameters": {
+        "prompt": "Approve whether to update Content Views prior to remediation",
+        "approver_groups": [
+          "admins"
+        ],
+        "fallback_decision": "reject"
+      }
+    },
+    {
+      "id": "activity_fe40b62f_2531_4167_bd83_a54378dc3387",
+      "name": "Notify Mattermost No CVEs",
+      "type": "aap_job_template",
+      "position": {
+        "x": 1238.4037651482047,
+        "y": 662.3546931670857
+      },
+      "settings": {},
+      "parameters": {
+        "diff_mode": false,
+        "extra_vars": {
+          "details": "No CVEs detected on host ${trigger.insights_adv_target_host}",
+          "alert_title": "No CVEs Found",
+          "alert_issue_value": "No CVEs Found"
+        },
+        "credential_id": "5ffbf308-9bac-443b-959e-28faadbf3cc4",
+        "integration_id": "8fa0c32c-5809-41b8-ba1e-a46d1a8e94a5",
+        "job_template_id": 804,
+        "job_template_name": "Notify Mattermost",
+        "organization_name": "Infrastructure"
+      }
+    },
+    {
+      "id": "classify_cve",
+      "name": "Classify CVEs",
+      "type": "aap_job_template",
+      "position": {
+        "x": 439.5761278193524,
+        "y": 311.0416989165098
+      },
+      "parameters": {
+        "diff_mode": false,
+        "extra_vars": {
+          "insights_adv_data": "${trigger.insights_adv_data}",
+          "insights_adv_type": "${trigger.insights_adv_type}",
+          "insights_adv_host_data": "${trigger.insights_adv_host_data}",
+          "insights_adv_target_host": "${trigger.insights_adv_target_host}"
+        },
+        "credential_id": "5ffbf308-9bac-443b-959e-28faadbf3cc4",
+        "integration_id": "8fa0c32c-5809-41b8-ba1e-a46d1a8e94a5",
+        "job_template_id": 1431,
+        "job_template_name": "EDA Automated Response Insights Advisory Classify",
+        "organization_name": "Infrastructure"
+      }
+    },
+    {
+      "id": "generate_playbook",
+      "name": "Generate Remediation Playbooks and push to Git",
+      "type": "aap_job_template",
+      "position": {
+        "x": 1260.0,
+        "y": 87.0
+      },
+      "settings": {},
+      "parameters": {
+        "diff_mode": false,
+        "extra_vars": {
+          "cve_list": "${classify_cve.artifacts.cve_list}",
+          "insights_adv_data": "${trigger.insights_adv_data}",
+          "insights_adv_type": "${trigger.insights_adv_type}",
+          "insights_adv_host_data": "${trigger.insights_adv_host_data}",
+          "insights_adv_target_host": "${trigger.insights_adv_target_host}"
+        },
+        "credential_id": "5ffbf308-9bac-443b-959e-28faadbf3cc4",
+        "integration_id": "8fa0c32c-5809-41b8-ba1e-a46d1a8e94a5",
+        "job_template_id": 1432,
+        "job_template_name": "EDA Automated Response Insights Advisory Create Playbooks",
+        "organization_name": "Infrastructure"
+      }
+    },
+    {
+      "id": "cve_approval",
+      "name": "CVE Remediation Approval",
+      "type": "approval",
+      "position": {
+        "x": 1649.576243856065,
+        "y": 121.65021151088368
+      },
+      "settings": {},
+      "parameters": {
+        "prompt": "Please review and approve CVE Remediation\n\nThis will run on host: ${trigger.insights_adv_host_data.display_name}",
+        "approver_groups": [
+          "admins"
+        ],
+        "fallback_decision": "reject"
+      }
+    },
+    {
+      "id": "notify_mattermost",
+      "name": "Notify Mattermost only Low CVEs",
+      "type": "aap_job_template",
+      "position": {
+        "x": 1246.926526920701,
+        "y": 386.14473748734196
+      },
+      "settings": {},
+      "parameters": {
+        "diff_mode": false,
+        "extra_vars": {
+          "details": "Low level security CVEs detected on host ${trigger.insights_adv_target_host}",
+          "alert_title": "CVE Low Level Issue",
+          "alert_issue_value": "CVE Low Level Issue"
+        },
+        "credential_id": "5ffbf308-9bac-443b-959e-28faadbf3cc4",
+        "integration_id": "8fa0c32c-5809-41b8-ba1e-a46d1a8e94a5",
+        "job_template_id": 804,
+        "job_template_name": "Notify Mattermost",
+        "organization_name": "Infrastructure"
+      }
+    },
+    {
+      "id": "route_switch",
+      "name": "CVE Route Decision",
+      "type": "switch",
+      "position": {
+        "x": 878.6178267358622,
+        "y": 321.521423042884
+      },
+      "parameters": {
+        "cases": [
+          {
+            "port": "case_0",
+            "label": "Critical CVEs Exist",
+            "condition": "'cve_list' in ${classify_cve.artifacts}"
+          },
+          {
+            "port": "case_1",
+            "label": "No Critical CVEs Exist",
+            "condition": "('cve_list' not in ${classify_cve.artifacts} and 'hosts_with_cve' in ${classify_cve.artifacts})"
+          },
+          {
+            "port": "case_2",
+            "label": "No CVEs found or host not managed by Ansible",
+            "condition": "'hosts_with_cve' not in ${classify_cve.artifacts}"
+          }
+        ],
+        "default_port": "default"
+      }
+    },
+    {
+      "id": "run_cve_remediation",
+      "name": "Run CVE Remediation",
+      "type": "aap_job_template",
+      "position": {
+        "x": 2894.976772173805,
+        "y": 96.16533503110736
+      },
+      "parameters": {
+        "diff_mode": false,
+        "extra_vars": {
+          "cve_list": "${generate_playbook.artifacts.ansible_cve_list}",
+          "new_incident": "${generate_playbook.artifacts.new_incident}",
+          "insights_adv_data": "${trigger.insights_adv_data}",
+          "insights_adv_type": "${trigger.insights_adv_type}",
+          "insights_adv_host_data": "${trigger.insights_adv_host_data}",
+          "insights_adv_target_host": "${trigger.insights_adv_target_host}"
+        },
+        "credential_id": "5ffbf308-9bac-443b-959e-28faadbf3cc4",
+        "integration_id": "8fa0c32c-5809-41b8-ba1e-a46d1a8e94a5",
+        "job_template_id": 1433,
+        "job_template_name": "EDA Automated Response Insights Advisory Remediate",
+        "organization_name": "Infrastructure"
+      }
+    }
+  ],
+  "triggers": [
+    {
+      "id": "trigger_manual",
+      "name": "CVE Alert",
+      "type": "manual_trigger",
+      "position": {
+        "x": -14.223438242220851,
+        "y": 548.3306956581446
+      },
+      "parameters": {
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "ansible_eda": {
+              "type": "object",
+              "properties": {
+                "rule": {
+                  "type": "string"
+                },
+                "event": {
+                  "type": "object",
+                  "properties": {
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "uuid": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "headers": {
+                          "type": "object",
+                          "properties": {}
+                        },
+                        "endpoint": {
+                          "type": "string"
+                        },
+                        "received_at": {
+                          "type": "string"
+                        },
+                        "eda_event_stream_name": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "payload": {
+                      "type": "object",
+                      "properties": {
+                        "bundle": {
+                          "type": "string"
+                        },
+                        "events": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "payload": {
+                                "type": "object",
+                                "properties": {
+                                  "synopsis": {
+                                    "type": "string"
+                                  },
+                                  "advisory_id": {
+                                    "type": "integer"
+                                  },
+                                  "advisory_name": {
+                                    "type": "string"
+                                  },
+                                  "advisory_type": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "metadata": {
+                                "type": "object",
+                                "properties": {}
+                              }
+                            }
+                          }
+                        },
+                        "org_id": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "object",
+                          "properties": {
+                            "bundle": {
+                              "type": "object",
+                              "properties": {
+                                "display_name": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "event_type": {
+                              "type": "object",
+                              "properties": {
+                                "display_name": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "application": {
+                              "type": "object",
+                              "properties": {
+                                "display_name": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "context": {
+                          "type": "object",
+                          "properties": {
+                            "tags": {
+                              "type": "array",
+                              "items": {}
+                            },
+                            "host_url": {
+                              "type": "string"
+                            },
+                            "display_name": {
+                              "type": "string"
+                            },
+                            "inventory_id": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "severity": {
+                          "type": "string"
+                        },
+                        "timestamp": {
+                          "type": "string"
+                        },
+                        "account_id": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "event_type": {
+                          "type": "string"
+                        },
+                        "application": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "ruleset": {
+                  "type": "string"
+                }
+              }
+            },
+            "insights_adv_data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "payload": {
+                    "type": "object",
+                    "properties": {
+                      "synopsis": {
+                        "type": "string"
+                      },
+                      "advisory_id": {
+                        "type": "integer"
+                      },
+                      "advisory_name": {
+                        "type": "string"
+                      },
+                      "advisory_type": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "properties": {}
+                  }
+                }
+              }
+            },
+            "insights_adv_type": {
+              "type": "string"
+            },
+            "insights_adv_host_data": {
+              "type": "object",
+              "properties": {
+                "tags": {
+                  "type": "array",
+                  "items": {}
+                },
+                "host_url": {
+                  "type": "string"
+                },
+                "display_name": {
+                  "type": "string"
+                },
+                "inventory_id": {
+                  "type": "string"
+                }
+              }
+            },
+            "insights_adv_target_host": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "activity_bc5d0c85_b7fd_4e6a_8b01_f6057e7173c0",
+      "name": "EDA Trigger From Lightspeed",
+      "type": "eda_trigger",
+      "position": {
+        "x": -22.144210224239757,
+        "y": 148.07463345964428
+      },
+      "parameters": {
+        "webhook_path": "00a39da8-c688-48a5-aa0a-c38d29e1ff90",
+        "authorized_service_account_ids": [
+          "60a683e9-09eb-434b-a922-6c9453062dbd"
+        ]
+      }
+    }
+  ],
+  "description": "Shadowman CVE Remediation",
+  "schema_version": "2.0.0"
+}
