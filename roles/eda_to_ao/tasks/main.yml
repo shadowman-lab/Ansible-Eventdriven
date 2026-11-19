@@ -29,6 +29,7 @@
           'insights_adv_target_host': insights_adv_target_host | default(None),
           'insights_adv_type': insights_adv_type | default(None),
           'vm_name': vm_name | default(None),
+          'image_tag': image_tag | default(None),
           'service_issue': service_issue | default(None),
         } | dict2items | rejectattr('value', 'none') | items2dict
       }}
